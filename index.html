@@ -9,7 +9,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=11">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+  <link rel="stylesheet" href="styles.css?v=12">
   <style>html.arriving body{animation:arrive .8s ease backwards}@keyframes arrive{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
   html.leaving body{opacity:0;transform:translateY(-14px);transition:opacity .55s ease,transform .55s ease}
   @media(prefers-reduced-motion:reduce){html.arriving body{animation:none}html.leaving body{transition:none}}</style>
@@ -23,12 +27,23 @@
 
   <header class="head">
     <h1>Flow Map Reward Alignment</h1>
-    <p class="lede">
-      The reward tilt is the standard target for aligning generative flows. It is built on stochastic processes, so
-      existing methods treat the flow as a diffusion. We instead pose reward alignment as deterministic optimal
-      control, where the flow map emerges as the central object.
-    </p>
+    <p class="lede">Reward alignment of generative flows through deterministic optimal control</p>
   </header>
+
+  <section class="contrast">
+    <div class="side">
+      <p class="side-tag">Standard · KL reward tilt</p>
+      <div class="eq">$$\max_{\nu}\ \lambda\,\mathbb{E}_{\nu}[r] - \mathrm{KL}(\nu\,\|\,\rho_1) \;\;\Rightarrow\;\; \tilde\rho_1 \propto e^{\lambda r}\rho_1$$</div>
+      <p class="side-text">Reweights the base distribution. The pathwise KL is tractable for diffusions, so the flow is treated as a diffusion.</p>
+    </div>
+    <div class="side ours">
+      <p class="side-tag">Ours · deterministic optimal control</p>
+      <div class="eq">$$\max_{u}\ \lambda\, r(x_1^u) - \tfrac12\!\int_0^1 \lVert u_t\rVert^2 dt, \quad \dot x_t^u = b_t(x_t^u) + u_t$$</div>
+      <p class="side-text">Steers each sample of the deterministic flow toward higher reward, at a transport cost. The flow map appears in the solution.</p>
+    </div>
+  </section>
+  <p class="bridge"><strong>FMRG</strong> solves this control problem along a single trajectory at inference time.
+    <strong>WTF</strong> fine-tunes the flow map toward its solution, replacing the KL with an optimal transport regularizer.</p>
 
   <main class="papers">
     <article class="paper" id="guidance">
