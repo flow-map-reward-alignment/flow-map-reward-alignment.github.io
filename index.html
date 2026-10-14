@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=3">
+  <link rel="stylesheet" href="styles.css?v=4">
   <style>html.arriving body{animation:arrive .8s ease backwards}@keyframes arrive{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
   html.leaving body{opacity:0;transform:translateY(-14px);transition:opacity .55s ease,transform .55s ease}
   @media(prefers-reduced-motion:reduce){html.arriving body{animation:none}html.leaving body{transition:none}}</style>
@@ -18,9 +18,12 @@
   <header class="head">
     <h1>Flow Map Reward Alignment</h1>
     <p class="lede">
-      Flow maps generate samples in one or a few steps by jumping along a generative flow. This line of work uses
-      them to align flow models with a reward. Both papers replace the KL reward tilt with deterministic optimal
-      control, which a flow map solves without simulating the flow.
+      Reward alignment of flow-based generative models is usually formulated as sampling from a reward-tilted
+      distribution. This target is hard to sample, and its tractable formulations rest on stochastic processes, so
+      existing methods convert the deterministic flow into a diffusion. Modern generators instead favor
+      deterministic flows, which flow maps accelerate to a few sampling steps. We replace the reward tilt with
+      deterministic optimal control, where the flow map emerges as the central object. This gives few-step
+      guidance at inference time and simulation-free reinforcement learning for fine-tuning.
     </p>
   </header>
 
@@ -30,7 +33,8 @@
       <div class="body">
         <p class="tag">Inference-time guidance <span class="venue">ICML 2026</span></p>
         <h2><a href="https://flow-map-reward-alignment.github.io/flow-map-reward-guidance/">How to Guide Your Flow: Few-Step Alignment via Flow Map Reward Guidance</a></h2>
-        <p class="authors">Jerry Y. Huang, Justin Lin, Sheel Shah, Kartik Nair, Nicholas M. Boffi</p>
+        <p class="authors">Jerry Y. Huang<sup>*</sup>, Justin Lin<sup>*</sup>, Sheel Shah, Kartik Nair, Nicholas M. Boffi</p>
+        <p class="note"><sup>*</sup>Equal contribution</p>
         <p class="summary">Training-free reward guidance of a pre-trained flow map, cast as deterministic optimal control, in as few as three network evaluations.</p>
         <p class="links">
           <a class="btn btn-primary" href="https://flow-map-reward-alignment.github.io/flow-map-reward-guidance/">Project page</a>
@@ -45,7 +49,8 @@
       <div class="body">
         <p class="tag">Fine-tuning <span class="venue">NeurIPS 2026 · Spotlight</span></p>
         <h2><a href="https://flow-map-reward-alignment.github.io/wasserstein-tilted-flow-maps/">WTF?! Simulation-Free Reinforcement Learning with Wasserstein-Tilted Flow Maps</a></h2>
-        <p class="authors">Abbas Mammadov, Jerry Y. Huang, Justin Lin, Partha Kaushik, Sheel Shah, Kartik Nair, Yee Whye Teh, Nicholas M. Boffi</p>
+        <p class="authors">Abbas Mammadov<sup>†*</sup>, Jerry Y. Huang<sup>†*</sup>, Justin Lin<sup>*</sup>, Partha Kaushik, Sheel Shah, Kartik Nair, Yee Whye Teh, Nicholas M. Boffi</p>
+        <p class="note"><sup>†</sup>Project lead · <sup>*</sup>Equal contribution</p>
         <p class="summary">Reward fine-tuning with an optimal transport regularizer, solved as deterministic optimal control with a flow map, which gives simulation-free reinforcement learning.</p>
         <p class="links">
           <a class="btn btn-primary" href="https://flow-map-reward-alignment.github.io/wasserstein-tilted-flow-maps/">Project page</a>

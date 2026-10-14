@@ -20,7 +20,7 @@ a { color: inherit; }
 .paper h2 { margin: 0 0 .45rem; font-family: var(--serif); font-weight: 600; font-size: 1.45rem; line-height: 1.25; }
 .paper h2 a { text-decoration: none; }
 .paper h2 a:hover { color: var(--accent); }
-.authors { margin: 0 0 .6rem; font-size: .9rem; color: var(--ink-faint); }
+.authors { margin: 0 0 .15rem; font-size: .9rem; color: var(--ink-faint); }
 .summary { margin: 0 0 1.1rem; color: var(--ink-soft); }
 .links { margin: 0; display: flex; flex-wrap: wrap; gap: .5rem; }
 .btn { display: inline-flex; align-items: center; padding: .45rem .95rem; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--panel); font-size: .88rem; font-weight: 600; text-decoration: none; color: var(--ink); }
@@ -29,3 +29,5 @@ a { color: inherit; }
 .btn-primary:hover { background: #4a3294; color: #fff; }
 .foot { padding: 0 1.5rem 3rem; text-align: center; font-size: .85rem; color: var(--ink-faint); }
 @media (max-width: 640px) { .head h1 { font-size: 2.2rem; } .head { padding-top: 3.5rem; } }
+.note { margin: 0 0 .6rem; font-size: .8rem; color: var(--ink-faint); }
+.authors sup, .note sup { color: var(--accent); }
