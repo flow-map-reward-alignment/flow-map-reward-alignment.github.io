@@ -8,12 +8,8 @@
   <link rel="canonical" href="https://flow-map-reward-alignment.github.io/">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,500&amp;family=Inter:wght@400;500;600;700&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
-    onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
-  <link rel="stylesheet" href="styles.css?v=10">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=11">
   <style>html.arriving body{animation:arrive .8s ease backwards}@keyframes arrive{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
   html.leaving body{opacity:0;transform:translateY(-14px);transition:opacity .55s ease,transform .55s ease}
   @media(prefers-reduced-motion:reduce){html.arriving body{animation:none}html.leaving body{transition:none}}</style>
@@ -26,36 +22,25 @@
   </div></div>
 
   <header class="head">
-    <h1>Flow Map Reward <em>Alignment</em></h1>
-    <p class="subtitle">Deterministic optimal control in place of the reward tilt</p>
+    <h1>Flow Map Reward Alignment</h1>
+    <p class="lede">
+      The reward tilt is the standard target for aligning generative flows. It is built on stochastic processes, so
+      existing methods treat the flow as a diffusion. We instead pose reward alignment as deterministic optimal
+      control, where the flow map emerges as the central object.
+    </p>
   </header>
-
-  <section class="framing">
-    <div class="panel">
-      <div class="panel-tag">The standard framing</div>
-      <div class="panel-eq">$\tilde\rho(x) \;\propto\; e^{r(x)}\,\rho(x)$</div>
-    </div>
-    <div class="problemgrid">
-      <div class="problem"><div class="plabel">Problem 01</div><div class="ptitle">Hard to sample</div>
-        <div class="pdesc">Sampling the reward tilt needs many particles and many steps, even for simple rewards.</div></div>
-      <div class="problem"><div class="plabel">Problem 02</div><div class="ptitle">Built for diffusions</div>
-        <div class="pdesc">Its tractable forms rest on stochastic processes, so existing methods convert the flow into a diffusion.</div></div>
-    </div>
-    <p class="answer">We cast reward alignment as <strong>deterministic optimal control</strong>, where the flow map is the central object.</p>
-  </section>
 
   <main class="papers">
     <article class="paper" id="guidance">
       <a class="thumb" href="https://flow-map-reward-alignment.github.io/flow-map-reward-guidance/"><img src="assets/fmrg.jpg?v=2" alt="Flow Map Reward Guidance: few-step reward-guided samples"></a>
       <div class="body">
         <p class="tag">Inference-time guidance <span class="venue">ICML 2026</span></p>
-        <h2><a href="https://flow-map-reward-alignment.github.io/flow-map-reward-guidance/">How to <em>Guide</em> Your Flow</a></h2>
-        <p class="sub">Few-Step Alignment via Flow Map Reward Guidance</p>
+        <h2><a href="https://flow-map-reward-alignment.github.io/flow-map-reward-guidance/">How to Guide Your Flow: Few-Step Alignment via Flow Map Reward Guidance</a></h2>
         <p class="authors">Jerry Y. Huang<sup>*</sup>, Justin Lin<sup>*</sup>, Sheel Shah, Kartik Nair, Nicholas M. Boffi</p>
         <p class="note"><sup>*</sup>Equal contribution</p>
-        <p class="summary">Training-free guidance along a single trajectory, with as few as 3 NFEs.</p>
+        <p class="summary">Training-free reward guidance of a pre-trained flow map, cast as deterministic optimal control, in as few as three network evaluations.</p>
         <p class="links">
-          <a class="btn btn-dark" href="https://flow-map-reward-alignment.github.io/flow-map-reward-guidance/">Project page</a>
+          <a class="btn btn-primary" href="https://flow-map-reward-alignment.github.io/flow-map-reward-guidance/">Project page</a>
           <a class="btn" href="https://arxiv.org/abs/2604.27147">arXiv</a>
           <a class="btn" href="https://github.com/jrrhuang/fmrg">Code</a>
         </p>
@@ -66,13 +51,12 @@
       <a class="thumb" href="https://flow-map-reward-alignment.github.io/wasserstein-tilted-flow-maps/"><img src="assets/wtf.jpg?v=2" alt="WTF: reward-aligned samples at few steps"></a>
       <div class="body">
         <p class="tag">Fine-tuning <span class="venue">NeurIPS 2026 · Spotlight</span></p>
-        <h2><a href="https://flow-map-reward-alignment.github.io/wasserstein-tilted-flow-maps/"><span class="wtf">WTF?!</span></a></h2>
-        <p class="sub">Simulation-Free Reinforcement Learning with Wasserstein-Tilted Flow Maps</p>
+        <h2><a href="https://flow-map-reward-alignment.github.io/wasserstein-tilted-flow-maps/">WTF?! Simulation-Free Reinforcement Learning with Wasserstein-Tilted Flow Maps</a></h2>
         <p class="authors">Abbas Mammadov<sup>†*</sup>, Jerry Y. Huang<sup>†*</sup>, Justin Lin<sup>*</sup>, Partha Kaushik, Sheel Shah, Kartik Nair, Yee Whye Teh, Nicholas M. Boffi</p>
         <p class="note"><sup>†</sup>Project lead · <sup>*</sup>Equal contribution</p>
-        <p class="summary">Simulation-free reinforcement learning for flow maps, with up to 280× less training compute.</p>
+        <p class="summary">Reward fine-tuning with an optimal transport regularizer, solved as deterministic optimal control with a flow map, which gives simulation-free reinforcement learning.</p>
         <p class="links">
-          <a class="btn btn-dark" href="https://flow-map-reward-alignment.github.io/wasserstein-tilted-flow-maps/">Project page</a>
+          <a class="btn btn-primary" href="https://flow-map-reward-alignment.github.io/wasserstein-tilted-flow-maps/">Project page</a>
           <a class="btn" href="https://arxiv.org/abs/2609.27033">arXiv</a>
           <a class="btn" href="https://github.com/wasserstein-tilted-flow-maps/WTF">Code</a>
         </p>
