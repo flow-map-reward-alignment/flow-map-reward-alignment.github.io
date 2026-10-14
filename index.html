@@ -9,6 +9,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=3">
+  <style>html.arriving body{animation:arrive .8s ease backwards}@keyframes arrive{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  html.leaving body{opacity:0;transform:translateY(-14px);transition:opacity .55s ease,transform .55s ease}
+  @media(prefers-reduced-motion:reduce){html.arriving body{animation:none}html.leaving body{transition:none}}</style>
+  <script>if(/flow-map-reward-(guidance|alignment)|wasserstein-tilted-flow-maps|localhost:879[23]/.test(document.referrer))document.documentElement.classList.add('arriving');</script>
 </head>
 <body>
   <header class="head">
@@ -54,5 +58,16 @@
   </main>
 
   <footer class="foot">Carnegie Mellon University · University of Oxford</footer>
+<script>
+// Fade out, then open the paper page, which fades in.
+(function(){var L={'flow-map-reward-guidance':'http://localhost:8792/','wasserstein-tilted-flow-maps':'http://localhost:8793/'};
+ var local=/^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+ document.querySelectorAll('a[href^="https://flow-map-reward-alignment.github.io/"]').forEach(function(a){
+  if(local){var u=new URL(a.href);Object.keys(L).forEach(function(k){if(u.pathname.indexOf('/'+k+'/')===0)a.href=L[k]+u.hash;});}
+  a.addEventListener('click',function(e){if(e.metaKey||e.ctrlKey||e.shiftKey||e.button!==0)return;e.preventDefault();
+   var d=document.documentElement;d.classList.remove('arriving');void document.body.offsetWidth;d.classList.add('leaving');
+   setTimeout(function(){location.href=a.href},550)})});
+ window.addEventListener('pageshow',function(){document.documentElement.classList.remove('leaving')});})();
+</script>
 </body>
 </html>
