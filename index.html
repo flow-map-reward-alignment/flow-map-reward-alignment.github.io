@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Flow Map Reward Alignment</title>
+  <meta name="description" content="Reward alignment of generative flows with flow maps and deterministic optimal control.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=1">
+</head>
+<body>
+  <header class="head">
+    <p class="kicker">Research</p>
+    <h1>Flow Map Reward Alignment</h1>
+    <p class="lede">
+      Flow maps generate samples in one or a few steps by jumping along a generative flow. This line of work uses
+      them to align flow models with a reward. Both papers replace the KL reward tilt with deterministic optimal
+      control, which a flow map solves without simulating the flow.
+    </p>
+  </header>
+
+  <main class="papers">
+    <article class="paper">
+      <a class="thumb" href="https://flow-map-reward-guidance.github.io/"><img src="assets/fmrg.jpg" alt="Reward-guided samples from Flow Map Reward Guidance"></a>
+      <div class="body">
+        <p class="tag">Inference-time guidance <span class="venue">ICML 2026</span></p>
+        <h2><a href="https://flow-map-reward-guidance.github.io/">How to Guide Your Flow: Few-Step Alignment via Flow Map Reward Guidance</a></h2>
+        <p class="authors">Jerry Y. Huang, Justin Lin, Sheel Shah, Kartik Nair, Nicholas M. Boffi</p>
+        <p class="summary">Training-free reward guidance of a pre-trained flow map, cast as deterministic optimal control, in as few as three network evaluations.</p>
+        <p class="links">
+          <a class="btn btn-primary" href="https://flow-map-reward-guidance.github.io/">Project page</a>
+          <a class="btn" href="https://arxiv.org/abs/2604.27147">arXiv</a>
+          <a class="btn" href="https://github.com/jrrhuang/fmrg">Code</a>
+        </p>
+      </div>
+    </article>
+
+    <article class="paper">
+      <a class="thumb" href="https://wasserstein-tilted-flow-maps.github.io/"><img src="assets/wtf.jpg" alt="Wasserstein tilt and reward tilt of a base distribution"></a>
+      <div class="body">
+        <p class="tag">Fine-tuning <span class="venue">NeurIPS 2026 · Spotlight</span></p>
+        <h2><a href="https://wasserstein-tilted-flow-maps.github.io/">WTF?! Simulation-Free Reinforcement Learning with Wasserstein-Tilted Flow Maps</a></h2>
+        <p class="authors">Abbas Mammadov, Jerry Y. Huang, Justin Lin, Partha Kaushik, Sheel Shah, Kartik Nair, Yee Whye Teh, Nicholas M. Boffi</p>
+        <p class="summary">Reward fine-tuning with an optimal transport regularizer, solved as deterministic optimal control with a flow map, which gives simulation-free reinforcement learning.</p>
+        <p class="links">
+          <a class="btn btn-primary" href="https://wasserstein-tilted-flow-maps.github.io/">Project page</a>
+          <a class="btn" href="https://arxiv.org/abs/2609.27033">arXiv</a>
+          <a class="btn" href="https://github.com/wasserstein-tilted-flow-maps/WTF">Code</a>
+        </p>
+      </div>
+    </article>
+  </main>
+
+  <footer class="foot">Carnegie Mellon University · University of Oxford</footer>
+</body>
+</html>
