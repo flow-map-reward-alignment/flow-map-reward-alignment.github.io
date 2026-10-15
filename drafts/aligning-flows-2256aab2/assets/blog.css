@@ -64,3 +64,14 @@ body { background: #fff; }
 .cv-rho1 { left: 89%; top: 9%; }
 .cv-r { left: 92.5%; top: 22%; color: rgb(80, 130, 80); transition: opacity .3s; }
 .cv-time { left: 50%; top: 96%; font-size: clamp(.75rem, 1.4vw, .95rem); color: var(--ink-soft); }
+
+/* KL lineage timeline */
+.timeline { display: grid; grid-template-columns: 3.4rem 1fr 1fr; max-width: 760px; margin: 0 auto; font-size: .92rem; line-height: 1.45; }
+.timeline > div { padding: .5rem .8rem; border-bottom: 1px solid var(--line); }
+.tl-h { font-size: .74rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); border-bottom: 1px solid var(--line-strong) !important; }
+.tl-y { font-variant-numeric: tabular-nums; color: var(--ink-faint); padding-left: 0 !important; }
+.tl-c a { color: var(--ink-soft); text-decoration: none; padding-left: 1rem; position: relative; display: inline-block; }
+.tl-c a::before { content: ""; position: absolute; left: 0; top: .5em; width: .45rem; height: .45rem; border-radius: 50%; background: var(--ink-faint); }
+.tl-dm a::before { background: rgb(217, 130, 43); }
+.tl-c a:hover { color: var(--accent); }
+.tl-dm { background: color-mix(in srgb, rgb(217, 130, 43) 5%, transparent); }

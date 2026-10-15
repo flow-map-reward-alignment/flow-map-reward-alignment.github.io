@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=EB+Garamond:ital,wght@0,600;0,800;1,500;1,600&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;0,8..60,800;0,8..60,900;1,8..60,400&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wtf.css?v=2">
-  <link rel="stylesheet" href="assets/blog.css?v=6">
+  <link rel="stylesheet" href="assets/blog.css?v=8">
   <script>
     window.MathJax = {
       tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
@@ -45,7 +45,23 @@
     <section id="awkward">
       <h2>Why is aligning a flow so awkward?</h2>
       <div class="prose">
-        <p>The prevailing formulation of reward alignment is KL-regularized reward maximization,</p>
+        <p>The standard objective for reward alignment comes from language models. Early work on fine-tuning language models from human preferences maximized a learned reward while penalizing the KL divergence from the pretrained model, so that the policy could not exploit the reward model by drifting away from natural text (<a href="https://arxiv.org/abs/1909.08593">Ziegler et al., 2019</a>; <a href="https://arxiv.org/abs/2009.01325">Stiennon et al., 2020</a>). The same objective trained InstructGPT (<a href="https://arxiv.org/abs/2203.02155">Ouyang et al., 2022</a>). Its optimum has a closed form, the pretrained distribution reweighted by the exponentiated reward (<a href="https://arxiv.org/abs/2205.11275">Korbak et al., 2022</a>), which Direct Preference Optimization turned into a simple training loss (<a href="https://arxiv.org/abs/2305.18290">Rafailov et al., 2023</a>).</p>
+        <p>Diffusion and flow models inherited this objective. Reinforcement learning methods for diffusion treat the denoising chain as a sequence of stochastic actions (<a href="https://arxiv.org/abs/2305.13301">Black et al., 2023</a>), with a KL penalty to the pretrained model (<a href="https://arxiv.org/abs/2305.16381">Fan et al., 2023</a>). Continuous-time formulations cast KL-regularized fine-tuning as entropy-regularized stochastic optimal control (<a href="https://arxiv.org/abs/2402.15194">Uehara et al., 2024</a>), and Adjoint Matching showed that reaching the reward tilt from a flow model requires a particular memoryless noise schedule (<a href="https://arxiv.org/abs/2409.08861">Domingo-Enrich et al., 2024</a>). Flow-GRPO converts the deterministic sampler into an equivalent stochastic one so that policy-gradient methods can explore (<a href="https://arxiv.org/abs/2505.05470">Liu et al., 2025</a>).</p>
+      </div>
+      <figure class="fig fig-wide">
+        <div class="timeline" role="img" aria-label="Timeline of KL-regularized reward alignment, from language models (2019 to 2023) to diffusion and flow models (2023 to 2025)">
+          <div class="tl-h"></div><div class="tl-h">Language models</div><div class="tl-h">Diffusion and flow models</div>
+          <div class="tl-y">2019</div><div class="tl-c tl-lm"><a href="https://arxiv.org/abs/1909.08593">KL-penalized RL from human preferences</a></div><div class="tl-c tl-dm"></div>
+          <div class="tl-y">2020</div><div class="tl-c tl-lm"><a href="https://arxiv.org/abs/2009.01325">Summarization from human feedback</a></div><div class="tl-c tl-dm"></div>
+          <div class="tl-y">2022</div><div class="tl-c tl-lm"><a href="https://arxiv.org/abs/2203.02155">InstructGPT</a><br><a href="https://arxiv.org/abs/2205.11275">The optimum is the reward tilt</a></div><div class="tl-c tl-dm"></div>
+          <div class="tl-y">2023</div><div class="tl-c tl-lm"><a href="https://arxiv.org/abs/2305.18290">DPO</a></div><div class="tl-c tl-dm"><a href="https://arxiv.org/abs/2305.13301">DDPO</a><br><a href="https://arxiv.org/abs/2305.16381">DPOK, with a KL penalty</a></div>
+          <div class="tl-y">2024</div><div class="tl-c tl-lm"></div><div class="tl-c tl-dm"><a href="https://arxiv.org/abs/2402.15194">Entropy-regularized control</a><br><a href="https://arxiv.org/abs/2409.08861">Adjoint Matching, memoryless noise</a></div>
+          <div class="tl-y">2025</div><div class="tl-c tl-lm"></div><div class="tl-c tl-dm"><a href="https://arxiv.org/abs/2505.05470">Flow-GRPO, ODE converted to SDE</a></div>
+        </div>
+        <figcaption>KL-regularized reward maximization moved from language models to diffusion and flow models. Each step on the flow side adds or relies on stochasticity to keep the objective tractable.</figcaption>
+      </figure>
+      <div class="prose">
+        <p>Written for a generative model with distribution $\rho_1$, the objective is</p>
       </div>
       <div class="keybox narrow">
         $$\max_{\nu}\ \lambda\, \mathbb{E}_{x\sim\nu}[r(x)] - \mathrm{KL}(\nu \,\|\, \rho_1), \qquad \tilde\rho_1(x) \propto e^{\lambda r(x)}\, \rho_1(x),$$
@@ -69,7 +85,8 @@
       </div>
       
       <div class="prose">
-        <p>This raises a question about the objective itself. The difficulty might come from the algorithms, or it might come from what we chose to mean by staying close to the pretrained model.</p>
+        <p>The objective fits language models for structural reasons. An autoregressive model gives the exact log-probability of every sequence as a sum of token log-probabilities, so the KL to the reference model can be estimated directly from samples. Its sampling is already stochastic, one token at a time, which is what policy-gradient methods need. And its outputs are discrete sequences with no geometry between them, so reweighting is essentially the only way to change their distribution.</p>
+        <p>None of these hold for a flow. Its likelihood requires integrating the divergence of the velocity along each trajectory. Two different deterministic flows from the same noise have mutually singular path measures, so the KL between their paths is infinite, which is why the tractable formulations add noise. Sampling is deterministic and, with flow maps, takes only a few steps. And the outputs live in a continuous space where the model already moves samples, so changing where a sample goes is as natural as changing how likely it is. The KL objective suits autoregressive language models well, but it may be the wrong notion of closeness for flows.</p>
       </div>
     </section>
 
