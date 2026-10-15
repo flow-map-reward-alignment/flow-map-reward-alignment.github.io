@@ -1,0 +1,26 @@
+/* Blog article layout on top of the WTF page styles (wtf.css). */
+.post { max-width: 1000px; margin: 0 auto; padding: 0 clamp(1rem, 4vw, 2rem) 5rem; }
+.post-head { max-width: 760px; margin: 0 auto; padding: 4.2rem 0 2.2rem; text-align: center; }
+.post-head h1 { font-family: var(--serif); font-weight: 700; font-size: clamp(2.2rem, 5.2vw, 3.4rem); line-height: 1.08; letter-spacing: -.02em; margin: 0 0 1rem; color: var(--ink); }
+.byline { margin: 0; font-size: .98rem; color: var(--ink-faint); }
+.post section { padding: 2.6rem 0 0; scroll-margin-top: 76px; }
+.post section h2 { max-width: 760px; margin: 0 auto 1.1rem; font-family: var(--serif); font-weight: 600; font-size: clamp(1.55rem, 3.2vw, 2.1rem); line-height: 1.18; letter-spacing: -.01em; color: var(--ink); }
+.post .prose p { font-size: 1.08rem; line-height: 1.72; color: var(--ink); }
+.post .prose a { color: var(--accent); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); }
+.post .prose a:hover { border-bottom-color: var(--accent); }
+.post .keybox { margin: 1.4rem auto 1.6rem; }
+.post .figure-hero, .post .lab, .post .valuefig, .post .cfig { margin: 2rem auto 2.2rem; }
+.post .figure-hero img { width: 100%; height: auto; display: block; }
+.post .figure-hero figcaption, .post .cfig figcaption { max-width: 760px; margin-left: auto; margin-right: auto; }
+.fig-pair { max-width: 640px; margin: 0 auto; }
+.post .table-wrap { max-width: 860px; margin: 1.6rem auto 2rem; }
+.summary-table td, .summary-table th { white-space: normal; }
+.summary-table td:first-child { font-weight: 600; color: var(--ink); width: 26%; }
+.papers-ref ul { max-width: 760px; margin: 0 auto; padding: 0; list-style: none; }
+.papers-ref li { margin: 0 0 1.1rem; line-height: 1.6; color: var(--ink-soft); }
+.papers-ref li strong { color: var(--ink); font-weight: 600; }
+.papers-ref sup, .ref-note sup { color: var(--accent); }
+.ref-links { display: block; margin-top: .2rem; font-size: .95rem; }
+.ref-links a { color: var(--accent); text-decoration: none; font-weight: 600; }
+.ref-note { max-width: 760px; margin: .4rem auto 0; font-size: .85rem; color: var(--ink-faint); }
+.site-nav .nav-brand { color: var(--accent); }
