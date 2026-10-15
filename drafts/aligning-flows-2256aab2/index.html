@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=EB+Garamond:ital,wght@0,600;0,800;1,500;1,600&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;0,8..60,800;0,8..60,900;1,8..60,400&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wtf.css?v=2">
-  <link rel="stylesheet" href="assets/blog.css?v=11">
+  <link rel="stylesheet" href="assets/blog.css?v=12">
   <script>
     window.MathJax = {
       tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
@@ -310,14 +310,12 @@
     </section>
 
     <section id="takeaways">
-      <h2>Takeaways</h2>
-      <ol class="takeaways">
-        <li>KL-regularized reward maximization is the default objective for reward alignment. For a deterministic flow it forces alignment through a stochastic process.</li>
-        <li>Measuring closeness by how much the flow must be steered keeps alignment on the flow itself. Each sample moves toward higher reward instead of being reweighted, and alignment becomes a deterministic optimal control problem.</li>
-        <li>The solution of that control problem is written in terms of the flow map. This is a reason to care about flow maps beyond fast sampling.</li>
-        <li>The same control problem gives few-step guidance at inference time and simulation-free reinforcement learning for fine-tuning. FMRG matches a reward-tilt sampler on GenEval with 70× fewer NFEs, and WTF reaches the peak rewards of Flow-GRPO and Adjoint Matching with 280× and 47× less training compute.</li>
-        <li>The KL objective is one choice of regularizer among many, and that choice decides which algorithms are practical.</li>
-      </ol>
+      <h2>Takeaway</h2>
+      <div class="prose takeaway">
+        <p>Every alignment method starts from a choice of what it means to stay close to the pretrained model. That choice is easy to treat as fixed, because the KL objective arrived with mature tools and a clean closed form. But the objective decides which quantities must be computed, and so which algorithms are practical. For flows, choosing KL turned alignment into a problem about stochastic processes, and much of the effort went into building those processes.</p>
+        <p>Matching the objective to the model changes what is hard. A flow moves samples, so we measured closeness by how much that motion has to change. The resulting problem lives on the flow, its solution is expressed through the flow map, and the objects we built to sample faster turn out to be what makes alignment cheap.</p>
+        <p>We expect this to hold beyond these two papers. Accelerated samplers such as flow maps are infrastructure for post-training, and an objective adopted from one kind of model deserves a second look when the model we train has a different structure.</p>
+      </div>
     </section>
 
     <section id="papers" class="papers-ref">

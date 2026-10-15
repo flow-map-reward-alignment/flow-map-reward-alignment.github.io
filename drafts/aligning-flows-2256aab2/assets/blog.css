@@ -84,3 +84,4 @@ body { background: #fff; }
 .takeaways li { counter-increment: tk; position: relative; padding: .9rem 0 .9rem 2.6rem; border-top: 1px solid var(--line); font-size: 1.06rem; line-height: 1.65; color: var(--ink); }
 .takeaways li:last-child { border-bottom: 1px solid var(--line); }
 .takeaways li::before { content: counter(tk); position: absolute; left: 0; top: .85rem; width: 1.7rem; height: 1.7rem; border-radius: 50%; background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); font-weight: 700; font-size: .9rem; display: flex; align-items: center; justify-content: center; }
+.post .takeaway p { font-size: 1.12rem; }
