@@ -13,8 +13,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/wtf.css?v=1">
-  <link rel="stylesheet" href="assets/blog.css?v=1">
+  <link rel="stylesheet" href="assets/wtf.css?v=2">
+  <link rel="stylesheet" href="assets/blog.css?v=3">
   <script>
     window.MathJax = {
       tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
@@ -56,12 +56,9 @@
         <p>The tilt is easy to write down and hard to work with. Sampling it exactly requires adding to the dynamics a correction $\nabla_x \log \mathbb{E}[e^{\lambda r(x_1)} \mid x_t = x]$, an expectation over an auxiliary stochastic process that runs from the current state to the end of generation. Estimating it means simulating many stochastic trajectories, and the exponential lets a few high-reward samples dominate the estimate. Recent work shows that sampling the tilt is computationally intractable even for simple rewards. Multi-particle methods such as sequential Monte Carlo can target it, but need many particles and many integration steps.</p>
         <p>The formulation also sits poorly with the models we actually deploy. Its tractable forms rest on stochastic processes, since the KL between path measures is computable for diffusions through Girsanov's theorem. Existing fine-tuning methods therefore convert the flow into a diffusion, fine-tune the diffusion, and convert the result back into a flow. Meanwhile the field has moved toward deterministic samplers, and toward flow maps that generate in one or a few steps. The model is a deterministic flow, but every step of its alignment goes through a stochastic process.</p>
       </div>
-      <figure class="figure-hero figure-anim">
-        <div class="vidwrap on-white">
-          <video class="autoplay" muted loop playsinline preload="none" width="1320" height="760" poster="assets/fmrg_overview_poster.jpg"
-            aria-label="A single trajectory alternates flow-map steps and guidance steps toward high reward.">
-            <source src="assets/fmrg_overview.mp4" type="video/mp4">
-          </video>
+      <figure class="fig fig-wide">
+        <div class="embed" style="aspect-ratio: 388.09 / 223.94">
+          <iframe src="assets/fmrg_overview.html" title="A single trajectory guided with flow-map steps, compared with stochastic particles with resampling for the reward tilt" loading="lazy" scrolling="no"></iframe>
         </div>
         <figcaption>One deterministic trajectory steered with flow-map steps and guidance steps (top), against a population of stochastic particles with resampling that targets the reward tilt (bottom).</figcaption>
       </figure>
@@ -83,14 +80,21 @@
       <div class="prose">
         <p>Replacing the KL with $\mathcal{T}_b$ changes what the optimum does. The regularized problem decomposes over samples, so each noise sample is transported to the endpoint with its best tradeoff between reward and steering cost. The KL tilt instead keeps the samples where they are and changes their weights. One consequence is easy to state. If two points have the same reward, any tilt multiplies both of their densities by the same factor $e^{\lambda r}$, so their density ratio never changes, whereas transport can move mass between them.</p>
       </div>
-      <figure class="figure-hero figure-anim">
-        <div class="vidwrap on-white">
-          <video class="autoplay" muted loop playsinline preload="none" width="2400" height="566" poster="assets/tilt_anim_poster.jpg"
-            aria-label="As the reward weight lambda grows from 0 to 3, the Wasserstein tilt moves each mode toward nearby high reward, while the reward tilt keeps every mode in place and only changes its height.">
-            <source src="assets/tilt_anim.mp4" type="video/mp4">
-          </video>
+      <figure class="fig fig-wide">
+        <div class="tiltfig" id="tiltfig" role="img" aria-label="As the reward weight lambda grows from 0 to 3, the Wasserstein tilt moves each mode toward nearby high reward, while the reward tilt keeps every mode in place and only changes its height.">
+          <div class="tf-t" style="left:24.09%">Wasserstein tilt (ours)</div>
+          <div class="tf-t" style="left:75.18%">Reward tilt</div>
+          <div class="tf-e" style="left:24.09%">$\arg\max_\nu \big\{\lambda\, \mathbb{E}_\nu[r] - \mathcal{T}_b(\rho_0,\nu)\big\}$</div>
+          <div class="tf-e" style="left:75.18%">$\arg\max_\nu \big\{\lambda\, \mathbb{E}_\nu[r] - \mathrm{KL}(\nu\,\|\,\rho_1)\big\} \propto e^{\lambda r}\rho_1$</div>
+          <div class="tf-r" style="left:2.48%">$r(x)$</div>
+          <div class="tf-r" style="left:53.58%">$r(x)$</div>
+          <div class="tf-x" style="left:46.94%">$x$</div>
+          <div class="tf-x" style="left:98.03%">$x$</div>
+          <div class="tf-c" style="left:24.09%">local transport toward nearby high-reward regions</div>
+          <div class="tf-c" style="left:75.18%">reweighting within existing support</div>
+          <div class="tf-lam">$\lambda$ = <b>0.00</b></div>
         </div>
-        <figcaption>As $\lambda$ grows, the Wasserstein tilt moves each mode toward nearby high reward. The KL tilt keeps every mode in place and changes its height.</figcaption>
+        <figcaption>As $\lambda$ grows, the Wasserstein tilt moves each mode toward nearby high reward. The KL tilt keeps every mode in place and changes its height. At $\lambda = 3$ this is Figure 1 of the WTF paper.</figcaption>
       </figure>
       <div class="prose">
         <p>The difference matters most when high reward lies where the base model puts little mass. In one dimension both optima can be computed exactly. Move the reward away from the base below and compare the expected rewards. As the reward enters the tail of the base distribution, the KL tilt has little mass to reweight, while the transport optimum moves samples into the high-reward region.</p>
@@ -168,20 +172,20 @@
       <div class="prose">
         <p>The same view organizes existing guidance methods into a hierarchy. Exact optimal control uses the controlled flow map. FMRG uses the pretrained flow map. DPS replaces the flow-map endpoint with a single Euler step, the posterior mean, and so sits at the coarsest level of the hierarchy, together with methods such as FlowDPS and FlowChef that differ mainly in their guidance weights. Read this way, DPS is a one-step approximation of a control problem, rather than an approximation of the reward tilt. The difference is visible in style guidance, where the flow-map variants transfer the reference style and the denoiser-based approximations miss it or add artifacts.</p>
       </div>
-      <figure class="figure-hero">
+      <figure class="fig fig-mid">
         <img src="assets/fmrg_style_hierarchy.webp" alt="Style guidance with FMRG-J and FMRG-E (flow map) against DPS and FlowChef (denoiser)">
         <figcaption>Style guidance across the hierarchy. The flow-map variants (FMRG-J, FMRG-E) follow the style reference, while their denoiser-based counterparts (DPS, FlowChef) miss the style or produce artifacts.</figcaption>
       </figure>
       <div class="prose">
         <p>Because each step uses an accurate lookahead, guidance needs very few network evaluations. On GenEval with FLUX, FMRG reaches a score of 0.80 at 100 NFEs. It matches the 0.77 of flow map trajectory tilting, a multi-particle sampler that targets the reward tilt, with 20 NFEs where that method uses 1400, a <strong>70× reduction</strong>. On latent inverse problems on AFHQ and FFHQ, FMRG outperforms DPS, FlowDPS and FlowChef while using up to <strong>10× fewer NFEs</strong>, and it produces aesthetic improvements with as few as 5 NFEs.</p>
       </div>
-      <div class="fig-pair">
-        <figure class="figure-hero">
+      <div>
+        <figure class="fig fig-narrow">
           <img src="assets/fmrg_pareto.png" alt="GenEval accuracy against NFE for FMRG and baselines">
           <figcaption>GenEval accuracy against NFE. FMRG-J reaches the 0.77 of trajectory tilting (dashed, 1400 NFEs) at 20 NFEs.</figcaption>
         </figure>
       </div>
-      <figure class="figure-hero">
+      <figure class="fig fig-wide">
         <img src="assets/fmrg_aesthetic.webp" alt="An unguided sample and FMRG aesthetic guidance at 5, 9 and 13 NFEs">
         <figcaption>Aesthetic guidance with a human-preference reward at 5, 9 and 13 NFEs, next to the unguided sample.</figcaption>
       </figure>
@@ -253,8 +257,8 @@
           </tbody>
         </table>
       </div>
-      <figure class="figure-hero">
-        <img src="assets/wtf_samples.jpg" alt="Base model at 50 steps and WTF at few steps and 50 steps">
+      <figure class="fig fig-wide">
+        <img src="assets/wtf_samples.webp" alt="Base model at 50 steps and WTF at few steps and 50 steps">
         <figcaption>Flow maps fine-tuned with WTF for HPSv2. WTF at 4 steps (text-to-image, left) and 1 step (ImageNet-256, right) matches the quality of its own 50-step generation. The base model is shown at 50 steps.</figcaption>
       </figure>
     </section>
@@ -290,18 +294,9 @@
     </section>
   </main>
 
+  <script src="assets/tilt-anim.js"></script>
   <script src="assets/tilt-lab.js"></script>
   <script src="assets/computefig.js"></script>
   <script src="assets/valuefig.js"></script>
-  <script>
-  // Play the looping animations only while they are on screen.
-  (function(){
-    var vids=[].slice.call(document.querySelectorAll('video.autoplay'));
-    if(!('IntersectionObserver' in window)){vids.forEach(function(v){v.play().catch(function(){})});return;}
-    var io=new IntersectionObserver(function(es){es.forEach(function(e){var v=e.target;
-      if(e.isIntersecting){var p=v.play();if(p&&p.catch)p.catch(function(){})}else v.pause();});},{threshold:.35});
-    vids.forEach(function(v){io.observe(v)});
-  })();
-  </script>
 </body>
 </html>

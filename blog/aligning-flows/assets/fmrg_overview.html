@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FMRG vs. SMC — aligned (single coordinate system), synchronized</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#fbf8f2; --ink:#1d1f27; --rule:#e7e1d2; }
+  *{box-sizing:border-box}
+  html,body{ background:transparent; }
+  body{ margin:0;padding:0;color:var(--ink);
+        font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif; }
+  .stage{ position:relative;margin:0;padding:0;background:transparent; }
+  .titleblock{ text-align:center;margin-bottom:.7rem; }
+  .titleblock .word{ font-family:'Source Serif 4',Georgia,serif;font-weight:500;
+                     font-size:1.4rem;color:var(--ink); }
+  /* ONE svg, ONE coordinate system -> top & bottom intrinsically aligned */
+  #mount svg{ width:100%;height:auto;display:block;overflow:visible; }
+  .controls{ max-width:1080px;margin:1rem auto 0;display:flex;justify-content:flex-end; }
+  .controls button{ font:500 .82rem -apple-system,sans-serif;padding:.5rem .9rem;
+    border-radius:6px;border:1px solid var(--rule);background:#fff;color:var(--ink);cursor:pointer; }
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div id="mount"></div>
+</div>
+
+
+<script>
+(async function(){
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const SVGNS = 'http://www.w3.org/2000/svg';
+
+  const svgText = await (await fetch('fmrg_overview.svg')).text();
+  const mount = document.getElementById('mount');
+  mount.innerHTML = svgText;
+  const svg = mount.querySelector('svg');
+  svg.setAttribute('preserveAspectRatio','xMidYMid meet');
+  let defs = svg.querySelector('defs');
+  if(!defs){ defs = document.createElementNS(SVGNS,'defs'); svg.insertBefore(defs, svg.firstChild); }
+
+  function effectiveDashArray(el){
+    let cur=el; while(cur && cur!==svg){
+      const d=cur.getAttribute && cur.getAttribute('stroke-dasharray');
+      if(d && d!=='none') return d; cur=cur.parentElement; } return null;
+  }
+  function classify(sel){
+    const g=svg.querySelector(sel); if(!g) return null;
+    const strokes=[],solids=[],labels=[];
+    g.querySelectorAll('path').forEach(p=>{
+      let f=p.getAttribute('fill'),el=p;
+      while(f===null && el.parentElement){ el=el.parentElement; if(el===svg)break; f=el.getAttribute('fill'); }
+      if(f==='none'||f===null) strokes.push(p); else solids.push(p);
+    });
+    g.querySelectorAll('g[transform]').forEach(tg=>{ if(tg.querySelector('use')) labels.push(tg); });
+    return { g, strokes, solids, labels };
+  }
+  function createDashedTraceMask(p,dur){
+    const len=p.getTotalLength(), uid='mk-'+Math.random().toString(36).slice(2,9);
+    const m=document.createElementNS(SVGNS,'mask');
+    m.setAttribute('id',uid); m.setAttribute('maskUnits','userSpaceOnUse'); m.setAttribute('maskContentUnits','userSpaceOnUse');
+    const mp=document.createElementNS(SVGNS,'path');
+    mp.setAttribute('d',p.getAttribute('d')); mp.setAttribute('stroke','#fff');
+    mp.setAttribute('stroke-width','2.4'); mp.setAttribute('fill','none');
+    mp.setAttribute('stroke-linecap','round'); mp.setAttribute('stroke-linejoin','round');
+    mp.style.strokeDasharray=len; mp.style.strokeDashoffset=len;
+    mp.style.transition=`stroke-dashoffset ${dur}s cubic-bezier(.5,.05,.25,1)`;
+    m.appendChild(mp); defs.appendChild(m);
+    p.setAttribute('mask',`url(#${uid})`); p._mask=mp; p._maskLen=len; p.dataset.mode='mask';
+  }
+  function setupSolidTrace(p,dur){
+    const len=p.getTotalLength();
+    p.style.strokeDasharray=len; p.style.strokeDashoffset=len;
+    p.style.transition=`stroke-dashoffset ${dur}s cubic-bezier(.5,.05,.25,1)`;
+    p.dataset.mode='solid'; p.dataset.len=len;
+  }
+  function snap(el,fn){ const t=el.style.transition; el.style.transition='none'; fn(); void el.getBoundingClientRect(); el.style.transition=t; }
+
+  function primeGroup(part,opt={}){
+    if(!part) return;
+    const { traceDur=0.6, trace=true } = opt;
+    part.solids.forEach(e=>{ e.style.opacity=0; e.style.transition='opacity .25s linear'; });
+    part.labels.forEach(e=>{ e.style.opacity=0; e.style.transition='opacity .35s ease'; });
+    part.strokes.forEach(e=>{
+      if(!trace){ e.style.opacity=0; e.style.transition='opacity .3s ease'; e.dataset.mode='fade'; return; }
+      const d=effectiveDashArray(e);
+      if(d) createDashedTraceMask(e,traceDur); else setupSolidTrace(e,traceDur);
+    });
+    part._dur=traceDur;
+  }
+  function playGroup(part,{solidDelay,labelDelay=0.1}={}){
+    if(!part) return;
+    part.strokes.forEach(e=>{
+      if(e.dataset.mode==='solid') e.style.strokeDashoffset=0;
+      else if(e.dataset.mode==='mask') e._mask.style.strokeDashoffset=0;
+      else e.style.opacity=1;
+    });
+    const sd = solidDelay!==undefined ? solidDelay : part._dur*0.92;
+    setTimeout(()=>part.labels.forEach(l=>l.style.opacity=1), labelDelay*1000);
+    setTimeout(()=>part.solids.forEach(s=>s.style.opacity=1), sd*1000);
+  }
+
+  /* ── TOP (st-*): original look, mask-trace machinery ─────────────────── */
+  const BEAT=150, TRACE_FLOW=4*BEAT, TRACE_LOOK=3*BEAT, HOLD_S=1*BEAT, HOLD_M=2*BEAT, HOLD_FINAL=6*BEAT;
+  const P = {
+    x0:classify('.st-x0'), flow1:classify('.st-flow1'), look1:classify('.st-look1'),
+    grad1:classify('.st-grad1'), flow2:classify('.st-flow2'), look2:classify('.st-look2'),
+    grad2:classify('.st-grad2'), flow3:classify('.st-flow3'),
+  };
+  function primeTop(){
+    primeGroup(P.x0,{trace:false});
+    primeGroup(P.flow1,{traceDur:TRACE_FLOW/1000});
+    primeGroup(P.look1,{traceDur:TRACE_LOOK/1000});
+    primeGroup(P.grad1,{trace:false});
+    primeGroup(P.flow2,{traceDur:TRACE_FLOW/1000});
+    primeGroup(P.look2,{traceDur:TRACE_LOOK/1000});
+    primeGroup(P.grad2,{trace:false});
+    primeGroup(P.flow3,{traceDur:TRACE_FLOW/1000});
+  }
+  function resetTop(){
+    Object.values(P).forEach(part=>{
+      if(!part) return;
+      part.strokes.forEach(e=>{
+        if(e.dataset.mode==='solid') snap(e,()=>e.style.strokeDashoffset=e.dataset.len);
+        else if(e.dataset.mode==='mask') snap(e._mask,()=>e._mask.style.strokeDashoffset=e._maskLen);
+        else snap(e,()=>e.style.opacity=0);
+      });
+      part.solids.forEach(e=>snap(e,()=>e.style.opacity=0));
+      part.labels.forEach(e=>snap(e,()=>e.style.opacity=0));
+    });
+  }
+  async function playTop(){
+    playGroup(P.x0,{solidDelay:0});                 await sleep(HOLD_S);
+    playGroup(P.flow1);                              await sleep(TRACE_FLOW+HOLD_S);
+    playGroup(P.look1);                              await sleep(TRACE_LOOK+HOLD_S);
+    playGroup(P.grad1,{solidDelay:0.15});            await sleep(HOLD_M);
+    playGroup(P.flow2);                              await sleep(TRACE_FLOW+HOLD_S);
+    playGroup(P.look2);                              await sleep(TRACE_LOOK+HOLD_S);
+    playGroup(P.grad2,{solidDelay:0.15});            await sleep(HOLD_M);
+    playGroup(P.flow3);                              await sleep(TRACE_FLOW+HOLD_FINAL);
+  }
+  const EVOLVE = HOLD_S + (TRACE_FLOW+HOLD_S) + (TRACE_LOOK+HOLD_S) + HOLD_M
+               + (TRACE_FLOW+HOLD_S) + (TRACE_LOOK+HOLD_S) + HOLD_M + TRACE_FLOW;
+
+  /* ── BOTTOM (sm-*): exact SMC, equal-speed parallel ─────────────────── */
+  const TRAJ=['sm-surv','sm-r1','sm-r2','sm-r3','sm-r4','sm-r5'].map(c=>({c,part:classify('.'+c),survivor:c==='sm-surv'}));
+  const XS=['sm-x1','sm-x2','sm-x3','sm-x4','sm-x5'].map(c=>svg.querySelector('.'+c));
+  const DOTS = classify('.sm-dots');        // 6 start dots on rho_0
+  const DOTEND = classify('.sm-dotend');    // surviving-trajectory end dot
+  const startDots = DOTS ? [...DOTS.solids, ...DOTS.strokes] : [];
+  const endDots   = DOTEND ? [...DOTEND.solids, ...DOTEND.strokes] : [];
+  function primeSMC(){
+    let maxLen=0;
+    TRAJ.forEach(o=>{ if(o.part) o.part.strokes.forEach(p=>maxLen=Math.max(maxLen,p.getTotalLength())); });
+    TRAJ.forEach(o=>{ if(!o.part) return;
+      o.part.strokes.forEach(p=>{
+        const len=p.getTotalLength();
+        p.style.strokeDasharray=len; p.style.strokeDashoffset=len;
+        p._durMs=EVOLVE*(len/maxLen);                  // constant px/sec
+        p.style.transition=`stroke-dashoffset ${(p._durMs/1000).toFixed(2)}s linear`;
+      });
+    });
+    XS.forEach(g=>{ if(g){ g.style.transition='opacity .2s ease'; snap(g,()=>g.style.opacity=0); } });
+    [...startDots,...endDots].forEach(d=>{ d.style.transition='opacity .18s ease'; snap(d,()=>d.style.opacity=0); });
+  }
+  function playSMC(){
+    // black dots pop in one-by-one, then particles launch
+    startDots.forEach((d,i)=> setTimeout(()=>{ d.style.opacity=1; }, 60*i));
+    const launch = 60*startDots.length + 120;
+    setTimeout(()=>{
+      TRAJ.forEach(o=>{ if(o.part) o.part.strokes.forEach(p=> requestAnimationFrame(()=>{ p.style.strokeDashoffset=0; })); });
+      TRAJ.forEach((o,i)=>{
+        if(o.survivor||!o.part) return;
+        const dur=Math.max(...o.part.strokes.map(p=>p._durMs)), g=XS[i-1];
+        if(g) setTimeout(()=>{ g.style.opacity=1; }, dur+80);
+      });
+      const survDur = TRAJ[0].part ? Math.max(...TRAJ[0].part.strokes.map(p=>p._durMs)) : EVOLVE;
+      setTimeout(()=>{ endDots.forEach(d=> d.style.opacity=1); }, survDur+60);
+    }, launch);
+  }
+  function resetSMC(){
+    TRAJ.forEach(o=>{ if(o.part) o.part.strokes.forEach(p=>snap(p,()=>{
+      const len=p.getTotalLength(); p.style.strokeDasharray=len; p.style.strokeDashoffset=len;
+    })); });
+    XS.forEach(g=>{ if(g) snap(g,()=>g.style.opacity=0); });
+    [...startDots,...endDots].forEach(d=> snap(d,()=>d.style.opacity=0));
+  }
+
+  /* ── Shared clock ──────────────────────────────────────────────────── */
+  let looping=true;
+  async function play(){
+    primeTop(); resetTop(); primeSMC(); resetSMC();
+    await sleep(450);
+    playSMC();
+    await playTop();
+    await sleep(HOLD_FINAL);
+  }
+  async function loop(){ while(looping){ await play(); } }
+
+  await sleep(150);
+  loop();
+})();
+</script>
+</body>
+</html>
