@@ -11,9 +11,9 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%235b3fb0'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Fraunces:ital,opsz,wght@1,9..144,600&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;0,8..60,800;0,8..60,900;1,8..60,400&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=EB+Garamond:ital,wght@0,600;0,800;1,500;1,600&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;0,8..60,800;0,8..60,900;1,8..60,400&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wtf.css?v=2">
-  <link rel="stylesheet" href="assets/blog.css?v=5">
+  <link rel="stylesheet" href="assets/blog.css?v=6">
   <script>
     window.MathJax = {
       tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
@@ -53,7 +53,6 @@
       <div class="prose">
         <p>where $\rho_1$ is the distribution of the pretrained model and $\lambda$ sets the strength of the reward. Its solution is the reward-tilted distribution $\tilde\rho_1$, which reweights the base distribution so that samples with high reward become more likely.</p>
         <p>The tilt is easy to write down and hard to work with. Sampling it exactly requires adding to the dynamics a correction $\nabla_x \log \mathbb{E}[e^{\lambda r(x_1)} \mid x_t = x]$, an expectation over an auxiliary stochastic process that runs from the current state to the end of generation. Estimating it means simulating many stochastic trajectories, and the exponential lets a few high-reward samples dominate the estimate. Recent work shows that sampling the tilt is computationally intractable even for simple rewards. Multi-particle methods such as sequential Monte Carlo can target it, but need many particles and many integration steps.</p>
-        <p>The formulation also sits poorly with the models we actually deploy. Its tractable forms rest on stochastic processes, since the KL between path measures is computable for diffusions through Girsanov's theorem. Existing fine-tuning methods therefore convert the flow into a diffusion, fine-tune the diffusion, and convert the result back into a flow. Meanwhile the field has moved toward deterministic samplers, and toward flow maps that generate in one or a few steps. The model is a deterministic flow, but every step of its alignment goes through a stochastic process.</p>
       </div>
       <figure class="fig fig-wide">
         <div class="embed" style="aspect-ratio: 388.09 / 223.94">
@@ -61,6 +60,22 @@
         </div>
         <figcaption>One deterministic trajectory steered with flow-map steps and guidance steps (top), against a population of stochastic particles with resampling that targets the reward tilt (bottom).</figcaption>
       </figure>
+      <div class="prose">
+        <p>The formulation also sits poorly with the models we actually deploy. Its tractable forms rest on stochastic processes, since the KL between path measures is computable for diffusions through Girsanov's theorem. Existing fine-tuning methods therefore convert the flow into a diffusion, fine-tune the diffusion, and convert the result back into a flow. Meanwhile the field has moved toward deterministic samplers, and toward flow maps that generate in one or a few steps. The model is a deterministic flow, but every step of its alignment goes through a stochastic process.</p>
+      </div>
+      <figure class="fig fig-wide cvfig">
+        <ol class="cv-steps" aria-hidden="true">
+          <li class="cv-step on"><b>1</b> Pretrained flow</li>
+          <li class="cv-step"><b>2</b> Convert to a diffusion</li>
+          <li class="cv-step"><b>3</b> Fine-tune toward the reward tilt</li>
+          <li class="cv-step"><b>4</b> Convert back to a flow</li>
+        </ol>
+        <div class="convertfig" id="convertfig" role="img" aria-label="Deterministic flow paths gain noise to become a diffusion with the same marginals, the diffusion is fine-tuned so that its endpoints follow the reward-tilted distribution, and the noise is removed to give a deterministic flow again."></div>
+        <figcaption>KL-based fine-tuning of a flow, in one dimension. The pretrained flow is converted into a diffusion with the same marginals, the diffusion is fine-tuned toward the reward tilt, and the result is converted back into a flow.</figcaption>
+      </figure>
+      <div class="prose">
+      </div>
+      
       <div class="prose">
         <p>This raises a question about the objective itself. The difficulty might come from the algorithms, or it might come from what we chose to mean by staying close to the pretrained model.</p>
       </div>
@@ -294,6 +309,7 @@
   </main>
 
   <script src="assets/tilt-anim.js"></script>
+  <script src="assets/convert-anim.js?v=2"></script>
   <script src="assets/tilt-lab.js"></script>
   <script src="assets/computefig.js"></script>
   <script src="assets/valuefig.js"></script>
