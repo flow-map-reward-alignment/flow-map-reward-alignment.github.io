@@ -312,7 +312,7 @@
     <section id="takeaways">
       <h2>Takeaways</h2>
       <ol class="takeaways">
-        <li>KL-regularized reward maximization became the default through language models, where exact likelihoods, stochastic sampling and discrete outputs make it a natural fit. For a deterministic flow it forces alignment through a stochastic process.</li>
+        <li>KL-regularized reward maximization is the default objective for reward alignment. For a deterministic flow it forces alignment through a stochastic process.</li>
         <li>Measuring closeness by how much the flow must be steered keeps alignment on the flow itself. Each sample moves toward higher reward instead of being reweighted, and alignment becomes a deterministic optimal control problem.</li>
         <li>The solution of that control problem is written in terms of the flow map. This is a reason to care about flow maps beyond fast sampling.</li>
         <li>The same control problem gives few-step guidance at inference time and simulation-free reinforcement learning for fine-tuning. FMRG matches a reward-tilt sampler on GenEval with 70× fewer NFEs, and WTF reaches the peak rewards of Flow-GRPO and Adjoint Matching with 280× and 47× less training compute.</li>
