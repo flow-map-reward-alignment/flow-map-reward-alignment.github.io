@@ -39,7 +39,7 @@
 
     <div class="prose">
       <p>Flow-based generative models produce excellent samples, and in practice we rarely want just any sample. We want images that people prefer, reconstructions that agree with a measurement, or outputs that follow a prompt more closely. These criteria are usually encoded as a reward $r$, and reward alignment asks how to raise the reward of generated samples while keeping what the pretrained model already does well.</p>
-      <p>There are two ways to do this. <strong>Guidance</strong> changes the sampling process at inference time and leaves the model untouched. <strong>Fine-tuning</strong> changes the model's weights in an additional training phase. Both face the same design question, which is how to measure departure from the pretrained generator. In two recent papers, <a href="../../flow-map-reward-guidance/">Flow Map Reward Guidance (FMRG)</a> for guidance and <a href="../../wasserstein-tilted-flow-maps/">Wasserstein-Tilted Flow Maps (WTF)</a> for fine-tuning, we argue that the standard answer to this question fits flows poorly, and that a different answer turns alignment into a deterministic optimal control problem. Solving that problem efficiently is also what makes flow maps worth having beyond fast sampling.</p>
+      <p>There are two ways to do this. <strong>Guidance</strong> changes the sampling process at inference time and leaves the model untouched. <strong>Fine-tuning</strong> changes the model's weights in an additional training phase. Both face the same design question, which is how to measure departure from the pretrained generator. In two recent papers, <a href="../../flow-map-reward-guidance/">Flow Map Reward Guidance (FMRG)</a> for guidance and <a href="../../wasserstein-tilted-flow-maps/">Wasserstein-Tilted Flow Maps (WTF)</a> for fine-tuning, we argue that the standard answer to this question fits flows poorly, and that a different answer turns alignment into a deterministic optimal control problem. Flow maps are what make that problem efficient to solve, because they let us control a flow as well as sample from it.</p>
     </div>
 
     <section id="awkward">
@@ -165,8 +165,8 @@
     <section id="flow-maps">
       <h2>Why flow maps?</h2>
       <div class="prose">
-        <p>This brings us to a question we found harder to answer than we expected. Distribution matching and adversarial training also turn a pretrained flow into a generator that samples in one step. If fast sampling were the whole story, it would not be clear what a flow map adds.</p>
-        <p>The control problem asks for more than a sample. To steer a half-generated sample, we need to know where it is heading, how that destination changes when we nudge the sample, and what happens along the way, since the control cost accumulates at intermediate times. A generator that maps noise to a sample answers none of these questions from an intermediate state. A flow map $X_{s,t}$ answers all three. It approximates the transition of the pretrained flow between any two times, $X_{s,t}(x_s) \approx x_t$, in a single evaluation.</p>
+        <p>This brings us to a question we found harder to answer than we expected. Distribution matching and adversarial training also turn a pretrained flow into a generator that samples in one step. If fast sampling were the whole story, it would not be clear what a flow map adds. Our answer is that a flow map lets us control the flow.</p>
+        <p>Controlling a flow means steering samples while they are being generated, and that asks for more than a sample. To steer a half-generated sample, we need to know where it is heading, how that destination changes when we nudge the sample, and what happens along the way, since the control cost accumulates at intermediate times. A generator that maps noise to a sample answers none of these questions from an intermediate state. A flow map $X_{s,t}$ answers all three. It approximates the transition of the pretrained flow between any two times, $X_{s,t}(x_s) \approx x_t$, in a single evaluation.</p>
       </div>
       <div class="needs">
         <div class="need"><p class="need-q">Where is the sample heading?</p><p class="need-a">$X_{t,1}(x)$</p><p class="need-d">the endpoint from the current state, where the reward is evaluated</p></div>
@@ -180,9 +180,9 @@
         $$u_t^* = \lambda\, \nabla X^{u^*}_{t,1}(x_t^*)^\top\, \nabla r\big(X^{u^*}_{t,1}(x_t^*)\big),$$
       </div>
       <div class="prose">
-        <p>where $X^{u^*}$ is the flow map of the controlled dynamics. The control at time $t$ is the reward gradient at the endpoint, pulled back through the map to the current state. For guidance, a flow map supplies this lookahead for deciding how to steer the current sample. For fine-tuning, it supplies the future states needed to evaluate and improve the current control. In both cases the map does more than make sampling fast. It gives repeated, cheap access to the dynamics of the generator, which is what alignment needs.</p>
+        <p>where $X^{u^*}$ is the flow map of the controlled dynamics. The control at time $t$ is the reward gradient at the endpoint, pulled back through the map to the current state. For guidance, a flow map supplies this lookahead for deciding how to steer the current sample. For fine-tuning, it supplies the future states needed to evaluate and improve the current control. In both cases we use the flow map to control the flow, and that is what alignment requires.</p>
       </div>
-      <p class="pull-q pull-q-sm">A one-step generator tells us where noise ends up.<br>A flow map tells us where any partially generated sample is heading.</p>
+      <p class="pull-q pull-q-sm">A one-step generator lets us sample from a flow.<br>A flow map lets us control it.</p>
     </section>
 
     <section id="guidance">
