@@ -77,4 +77,4 @@ body { background: #fff; }
 .tl-dm { background: color-mix(in srgb, rgb(217, 130, 43) 5%, transparent); }
 
 /* the motivating question */
-.pull-q { max-width: 680px; margin: 2.4rem auto 2.2rem; padding: 1.1rem 0; text-align: center; font-family: 'EB Garamond', Georgia, serif; font-style: italic; font-size: clamp(1.3rem, 2.6vw, 1.65rem); line-height: 1.4; color: var(--ink); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.pull-q { max-width: 800px; text-wrap: balance; margin: 2.4rem auto 2.2rem; padding: 1.1rem 0; text-align: center; font-family: 'EB Garamond', Georgia, serif; font-style: italic; font-size: clamp(1.3rem, 2.6vw, 1.65rem); line-height: 1.4; color: var(--ink); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
