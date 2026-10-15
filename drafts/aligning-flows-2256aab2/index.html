@@ -182,7 +182,7 @@
       <div class="prose">
         <p>where $X^{u^*}$ is the flow map of the controlled dynamics. The control at time $t$ is the reward gradient at the endpoint, pulled back through the map to the current state. For guidance, a flow map supplies this lookahead for deciding how to steer the current sample. For fine-tuning, it supplies the future states needed to evaluate and improve the current control. In both cases the flow map turns control into a handful of network evaluations, and that is what makes alignment cheap.</p>
       </div>
-      <p class="pull-q pull-q-sm">A one-step generator makes a flow fast to sample.<br>A flow map makes it <strong>easy to control</strong>.</p>
+      <p class="pull-q pull-q-sm">A one-step generator makes a flow fast to sample.<br>A flow map additionally makes it <strong>easy to control</strong>.</p>
     </section>
 
     <section id="guidance">
