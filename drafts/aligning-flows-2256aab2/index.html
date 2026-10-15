@@ -53,14 +53,6 @@
       <div class="prose">
         <p>where $\rho_1$ is the distribution of the pretrained model and $\lambda$ sets the strength of the reward. Its solution is the reward-tilted distribution $\tilde\rho_1$, which reweights the base distribution so that samples with high reward become more likely.</p>
         <p>The tilt is easy to write down and hard to work with. Sampling it exactly requires adding to the dynamics a correction $\nabla_x \log \mathbb{E}[e^{\lambda r(x_1)} \mid x_t = x]$, an expectation over an auxiliary stochastic process that runs from the current state to the end of generation. Estimating it means simulating many stochastic trajectories, and the exponential lets a few high-reward samples dominate the estimate. Recent work shows that sampling the tilt is computationally intractable even for simple rewards. Multi-particle methods such as sequential Monte Carlo can target it, but need many particles and many integration steps.</p>
-      </div>
-      <figure class="fig fig-wide">
-        <div class="embed" style="aspect-ratio: 388.09 / 223.94">
-          <iframe src="assets/fmrg_overview.html" title="A single trajectory guided with flow-map steps, compared with stochastic particles with resampling for the reward tilt" loading="lazy" scrolling="no"></iframe>
-        </div>
-        <figcaption>One deterministic trajectory steered with flow-map steps and guidance steps (top), against a population of stochastic particles with resampling that targets the reward tilt (bottom).</figcaption>
-      </figure>
-      <div class="prose">
         <p>The formulation also sits poorly with the models we actually deploy. Its tractable forms rest on stochastic processes, since the KL between path measures is computable for diffusions through Girsanov's theorem. Existing fine-tuning methods therefore convert the flow into a diffusion, fine-tune the diffusion, and convert the result back into a flow. Meanwhile the field has moved toward deterministic samplers, and toward flow maps that generate in one or a few steps. The model is a deterministic flow, but every step of its alignment goes through a stochastic process.</p>
       </div>
       <figure class="fig fig-wide cvfig">
@@ -183,6 +175,12 @@
       <div class="prose">
         <p>This signal is justified in two complementary ways. It is the optimal control to second order as $\lambda \to 0$, and for any $\lambda$ it is the optimal correction when the control acts only in a short window around the current time. In practice FMRG alternates two operations. A flow-map step integrates the pretrained dynamics exactly over a large interval, and a guidance step looks ahead with the flow map to the endpoint, evaluates the reward there, and corrects the current state.</p>
       </div>
+      <figure class="fig fig-wide">
+        <div class="embed" style="aspect-ratio: 388.09 / 223.94">
+          <iframe src="assets/fmrg_overview.html" title="A single trajectory guided with flow-map steps, compared with stochastic particles with resampling for the reward tilt" loading="lazy" scrolling="no"></iframe>
+        </div>
+        <figcaption>One deterministic trajectory steered with flow-map steps and guidance steps (top), against a population of stochastic particles with resampling that targets the reward tilt (bottom).</figcaption>
+      </figure>
       <div class="prose">
         <p>The same view organizes existing guidance methods into a hierarchy. Exact optimal control uses the controlled flow map. FMRG uses the pretrained flow map. DPS replaces the flow-map endpoint with a single Euler step, the posterior mean, and so sits at the coarsest level of the hierarchy, together with methods such as FlowDPS and FlowChef that differ mainly in their guidance weights. Read this way, DPS is a one-step approximation of a control problem, rather than an approximation of the reward tilt. The difference is visible in style guidance, where the flow-map variants transfer the reference style and the denoiser-based approximations miss it or add artifacts.</p>
       </div>
