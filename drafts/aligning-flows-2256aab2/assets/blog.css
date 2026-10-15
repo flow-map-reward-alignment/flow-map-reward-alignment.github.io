@@ -48,3 +48,4 @@ body { background: #fff; }
 .ref-links a { color: var(--accent); text-decoration: none; font-weight: 600; }
 .ref-note { max-width: 760px; margin: .4rem auto 0; font-size: .85rem; color: var(--ink-faint); }
 .site-nav .nav-brand { color: var(--accent); }
+.post-head h1 .hl { color: var(--accent); }
