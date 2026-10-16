@@ -39,7 +39,7 @@
 
     <div class="prose">
       <p>Flow-based generative models produce excellent samples, and in practice we rarely want just any sample. We want images that people prefer, reconstructions that agree with a measurement, or outputs that follow a prompt more closely. These criteria are usually encoded as a reward $r$, and reward alignment asks how to raise the reward of generated samples while keeping what the pretrained model already does well.</p>
-      <p>There are two ways to do this. <strong>Guidance</strong> changes the sampling process at inference time and leaves the model untouched. <strong>Fine-tuning</strong> changes the model's weights in an additional training phase. Both face the same design question, which is how to measure departure from the pretrained generator. In two recent papers, <a href="../../flow-map-reward-guidance/">Flow Map Reward Guidance (FMRG)</a> for guidance and <a href="../../wasserstein-tilted-flow-maps/">Wasserstein-Tilted Flow Maps (WTF)</a> for fine-tuning, we argue that the standard answer to this question fits flows poorly, and that a different answer turns alignment into a deterministic optimal control problem. Flow maps are what make that problem efficient to solve, because they make a flow easy to control as well as fast to sample.</p>
+      <p>There are two ways to do this. <strong>Guidance</strong> changes the sampling process at inference time and leaves the model untouched. <strong>Fine-tuning</strong> changes the model's weights in an additional training phase. Both face the same design question, which is how to measure departure from the pretrained generator. The standard answer leads to an odd situation. A flow generates samples by following a deterministic trajectory, yet the common methods for aligning it introduce stochastic dynamics to make a KL-regularized objective tractable. In two recent papers, <a href="../../flow-map-reward-guidance/">Flow Map Reward Guidance (FMRG)</a> for guidance and <a href="../../wasserstein-tilted-flow-maps/">Wasserstein-Tilted Flow Maps (WTF)</a> for fine-tuning, we measure departure through the motion of the flow itself. Reward alignment then becomes a deterministic optimal control problem, and flow maps take on a role beyond fast sampling. They supply the future states needed to evaluate and improve the control.</p>
     </div>
 
     <section id="awkward">
@@ -165,8 +165,9 @@
     <section id="flow-maps">
       <h2>Why flow maps?</h2>
       <div class="prose">
-        <p>This brings us to a question we found harder to answer than we expected. Distribution matching and adversarial training also turn a pretrained flow into a generator that samples in one step. If fast sampling were the whole story, it would not be clear what a flow map adds. Our answer is that a flow map makes the flow <em>easy to control</em>.</p>
-        <p>Controlling a flow means steering samples while they are being generated, and that asks for more than a sample. To steer a half-generated sample, we need to know where it is heading, how that destination changes when we nudge the sample, and what happens along the way, since the control cost accumulates at intermediate times. A generator that maps noise to a sample answers none of these questions from an intermediate state. A flow map $X_{s,t}$ answers all three. It approximates the transition of the pretrained flow between any two times, $X_{s,t}(x_s) \approx x_t$, in a single evaluation.</p>
+        <p>A flow model generates samples by following a velocity field from noise to data. Its flow map $X_{s,t}$ takes a state at time $s$ to the state these dynamics reach at time $t$. Learning this map lets us approximate that transition in a single network evaluation, including transitions that start from intermediate states.</p>
+        <p>This brings us to a question we found harder to answer than we expected. Distribution matching and adversarial training also produce strong one-step generators. If fast sampling were the whole story, it would not be clear what learning a flow map adds. There is a further puzzle. A flow map is trained to skip the trajectory, while the control problem is defined along it, so there is little reason to expect the map to help. It does, because it makes the flow <em>easy to control</em>.</p>
+        <p>Controlling a flow means steering samples while they are being generated, and that asks for more than a sample. To steer a half-generated sample, we need to know where it is heading, how that destination changes when we nudge the sample, and what happens along the way, since the control cost accumulates at intermediate times. A generator that maps noise to a sample answers none of these questions from an intermediate state. A flow map answers each of them with one evaluation.</p>
       </div>
       <div class="needs">
         <div class="need"><p class="need-q">Where is the sample heading?</p><p class="need-a">$X_{t,1}(x)$</p><p class="need-d">the endpoint from the current state, where the reward is evaluated</p></div>
@@ -174,7 +175,7 @@
         <div class="need"><p class="need-q">What happens along the way?</p><p class="need-a">$X_{t,\tau}(x)$</p><p class="need-d">intermediate states, where the control cost is paid</p></div>
       </div>
       <div class="prose">
-        <p>These quantities appear in the solution of the control problem itself. Along an optimal trajectory $x_t^*$, the optimal control satisfies</p>
+        <p>Surprisingly, the flow map appears in the optimality conditions of the control problem itself. Along an optimal trajectory $x_t^*$, the optimal control satisfies</p>
       </div>
       <div class="keybox narrow">
         $$u_t^* = \lambda\, \nabla X^{u^*}_{t,1}(x_t^*)^\top\, \nabla r\big(X^{u^*}_{t,1}(x_t^*)\big),$$
@@ -242,7 +243,7 @@
       </div>
       <div class="prose">
         <p>The estimator follows from a simple Monte Carlo idea. The reward needs only the endpoint. The remaining control cost is an integral over time, and we estimate it by sampling one time $\tau$ uniformly in $[t, 1]$, evaluating the control cost there, and multiplying by the length $1 - t$ of the remaining interval. The flow map reaches the sampled intermediate state and then the endpoint in two transitions. Averaged over the sampled time, this recovers the integral exactly when the transitions follow the reference dynamics.</p>
-        <p>The only randomness in this estimate comes from a one-dimensional time integral, in contrast to the high-dimensional expectations behind the stochastic value functions of the reward tilt. Its gradient gives the regression target for the control.</p>
+        <p>The map learned to accelerate sampling therefore also supplies what is needed to improve the model, with two evaluations in place of a learned critic or a full rollout. The only randomness in this estimate comes from a one-dimensional time integral, in contrast to the high-dimensional expectations behind the stochastic value functions of the reward tilt. Its gradient gives the regression target for the control.</p>
       </div>
       <div class="valuefig" id="valuefig">
         <article class="vf-panel" data-kind="ac" data-aria="Actor-critic: the state passes once through a learned critic network that outputs the value estimate.">
