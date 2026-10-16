@@ -50,7 +50,10 @@
       <p>Reinforcement learning has helped make language models such as ChatGPT and DeepSeek-R1 better at following instructions and solving reasoning problems. How should we use reward feedback to improve image and video generators?</p>
       <p>Many of these generators, including Stable Diffusion 3, FLUX, and MiniMax H3, are built on flow matching. They learn to transform noise into a sample by following a continuous trajectory. We would like to improve their outputs through reward feedback while preserving the capabilities learned during pretraining.</p>
       <p>There are two ways to do this. <strong>Guidance</strong> changes the sampling process at test time and leaves the model untouched. <strong>Fine-tuning</strong> changes the model's weights in an additional training phase. Both face the same design question, which is how to measure departure from the pretrained generator.</p>
-      <p>The standard answer leads to an odd situation. A flow generates samples by following a deterministic trajectory, yet the common methods for aligning it introduce stochastic dynamics to make a KL-regularized objective tractable. Is KL really the right objective for aligning flows?</p>
+      <p>The standard answer leads to an odd situation. A flow generates samples by following a deterministic trajectory, yet the common methods for aligning it introduce stochastic dynamics to make a KL-regularized objective tractable.</p>
+    </div>
+    <p class="pull-q">Is KL really the right objective for aligning flows?</p>
+    <div class="prose">
       <p>In two recent papers, <a href="../../flow-map-reward-guidance/">Flow Map Reward Guidance (FMRG)</a> for guidance and <a href="../../wasserstein-tilted-flow-maps/">Wasserstein-Tilted Flow Maps (WTF)</a> for fine-tuning, we measure departure through the motion of the flow itself. This gives a transport-based regularizer that turns reward alignment into a deterministic optimal control problem.</p>
       <p>Flow maps make this formulation particularly useful. By predicting future states along a trajectory, they provide the information needed to guide and fine-tune the generator efficiently. This gives us a reason to care about flow maps beyond their ability to accelerate inference.</p>
     </div>
