@@ -105,13 +105,11 @@
         <p>WTF shows what this objective means at the level of distributions. The least control effort needed to steer the pretrained flow from one point to another defines a transport cost, and the optimal transport problem built from it gives a regularizer $\mathcal{T}_b(\rho_0, \nu)$, the least total effort needed to reach a terminal distribution $\nu$. Maximizing reward regularized by $\mathcal{T}_b$ in place of the KL has the same optimal value as the control problem above.</p>
         <p>Although $\mathcal{T}_b$ is written with the noise distribution $\rho_0$, it measures departure from the pretrained generator, because its cost contains $b$ and following $b$ costs nothing. The only distribution reachable at zero cost is the pretrained one.</p>
       </div>
-      <details class="aside">
-        <summary>The transport cost in full</summary>
-        <div class="keybox narrow">
+      <div class="keybox narrow">
           $$c_b(x, y) = \inf_{\omega_0 = x,\ \omega_1 = y}\ \frac{1}{2}\int_0^1 \lVert \dot\omega_t - b_t(\omega_t) \rVert^2\, dt, \qquad \mathcal{T}_b(\rho_0,\nu)=\inf_{\pi\in\Pi(\rho_0,\nu)}\int c_b(x,y)\,\pi(dx\,dy)$$
+        
+          <p class="framing-note">With $b\equiv 0$, the regularizer reduces to $\tfrac12 W_2^2(\rho_0,\nu)$. With a nontrivial $b$ it measures the effort required beyond what the pretrained model already does.</p>
         </div>
-        <div class="prose"><p>With $b\equiv 0$, the regularizer reduces to $\tfrac12 W_2^2(\rho_0,\nu)$. With a nontrivial $b$ it measures the effort required beyond what the pretrained model already does.</p></div>
-      </details>
       <div class="prose">
         <p>Replacing the KL with $\mathcal{T}_b$ changes the distribution we seek, not only the algorithm that finds it. The problem decomposes over samples, so each noise sample is transported to the endpoint with its best tradeoff between reward and steering cost. The KL tilt instead reweights the base density according to reward. One consequence is easy to state. If two points have the same reward, any tilt multiplies both of their densities by the same factor $e^{\lambda r}$, so their density ratio never changes, whereas transport can move mass between them.</p>
       </div>
@@ -201,7 +199,7 @@
         $$u_t(x) = \lambda\, \nabla_x r\big(X_{t,1}(x)\big) = \lambda\, \nabla X_{t,1}(x)^\top\, \nabla r\big(X_{t,1}(x)\big).$$
       </div>
       <div class="prose">
-        <p>The signal costs one forward evaluation of the flow map and one backward pass, with no differentiation through a multistep rollout. It is greedy, because the lookahead assumes no further intervention, even though guidance is applied again at later steps. For small $\lambda$ it approximates the optimal control with error $O(\lambda^2)$.</p>
+        <p>The signal costs one forward evaluation of the flow map and one backward pass, with no differentiation through a multistep rollout. It is greedy, because the lookahead assumes no further intervention, even though guidance is applied again at later steps.</p>
         <p>To generate a sample, FMRG alternates two operations. A flow-map step advances the state along the pretrained dynamics in one evaluation, and a guidance step applies the correction above. The same flow map serves both operations.</p>
       </div>
       <figure class="fig fig-wide">
@@ -213,18 +211,15 @@
       <div class="prose">
         <p>The guidance strength sets how aggressively we intervene. Guidance can also stop early, after which the pretrained flow map completes generation, which limits over-optimization of the reward while keeping the improvements made earlier in the trajectory.</p>
       </div>
-      <details class="aside">
-        <summary>Connection to optimal control</summary>
-        <div class="prose">
-          <p>The exact optimal control has the same form, with the flow map of the controlled dynamics in place of the pretrained one. Along an optimal trajectory $x_t^*$, holding the control fixed when differentiating the trajectory, the maximum principle gives</p>
+              <div class="prose">
+          <p>Why should this greedy signal approximate the solution of the control problem? The exact optimal control has the same form, with the flow map of the controlled dynamics in place of the pretrained one. Along an optimal trajectory $x_t^*$, holding the control fixed when differentiating the trajectory, the maximum principle gives</p>
         </div>
         <div class="keybox narrow">
           $$u_t^* = \lambda\, \nabla X^{u^*}_{t,1}(x_t^*)^\top\, \nabla r\big(X^{u^*}_{t,1}(x_t^*)\big).$$
         </div>
         <div class="prose">
-          <p>This is circular, because the controlled flow map describes the trajectory we are trying to construct. Using the pretrained map instead is justified in two ways. It approximates the optimal control with error $O(\lambda^2)$ as $\lambda \to 0$, and for any $\lambda$ it is the optimal correction when the control acts only in a vanishingly short window around the current time.</p>
+          <p>The control at time $t$ is the reward gradient at the endpoint, carried back through the controlled flow map to the current state. This is circular, because the controlled flow map describes the trajectory we are trying to construct. Using the pretrained map instead is justified in two ways. It approximates the optimal control with error $O(\lambda^2)$ as $\lambda \to 0$, and for any $\lambda$ it is the optimal correction when the control acts only in a vanishingly short window around the current time.</p>
         </div>
-      </details>
       <h3 class="sub">From denoisers to flow maps</h3>
       <div class="prose">
         <p>A denoiser and a flow map both predict a clean sample from a noisy state, but they predict different things. The denoiser predicts the conditional mean over all clean samples consistent with the current state. The flow map predicts the destination of this particular deterministic trajectory. In the linear-interpolant setting, the conditional mean coincides with a single Euler step of the flow toward the endpoint. Replacing the flow-map endpoint and its derivative in the guidance signal with this Euler approximation recovers the guidance of diffusion posterior sampling (DPS). DPS therefore sits at the coarsest level of a hierarchy of approximations to the control problem, and FMRG one level closer to the exact control.</p>
