@@ -86,7 +86,7 @@
         <div class="convertfig" id="convertfig" role="img" aria-label="Deterministic flow paths gain noise to become a diffusion with the same marginals, the diffusion is fine-tuned so that its endpoints follow the reward-tilted distribution, and the noise is removed to give a deterministic flow again."></div>
         <figcaption>KL-based fine-tuning of a flow, in one dimension. The pretrained flow is converted into a diffusion with the same marginals, the diffusion is fine-tuned toward the reward tilt, and the result is converted back into a flow.</figcaption>
       </figure>
-      <p class="pull-q">The KL objective became the default through language models, and flows inherited it.<br>Is this really the right notion of closeness for a flow?</p>
+      <p class="pull-q">Is KL really the right objective for aligning flows?</p>
     </section>
 
     <section id="closeness">
@@ -125,7 +125,7 @@
         <figcaption>As $\lambda$ grows, the Wasserstein tilt moves each mode toward nearby high reward. The KL tilt reweights the base density by $e^{\lambda r}$, which here mostly changes the height of each mode. At $\lambda = 3$ this is Figure 1 of the WTF paper.</figcaption>
       </figure>
       <div class="prose">
-        <p>The difference matters most when high reward lies where the base model puts little mass. In one dimension both optima can be computed exactly. Move the reward away from the base below and compare the expected rewards. As the reward enters the tail of the base distribution, the KL tilt has little mass to reweight, while the transport optimum moves samples into the high-reward region.</p>
+        <p>The difference matters most when high reward lies where the base model puts little mass. In one dimension both optima can be computed exactly. Hold the reward scale fixed and drag the reward location outward. While the reward sits near the base, both objectives raise the expected reward. As it moves into the tail, the KL tilt has less and less mass there to reweight and its expected reward falls toward the base, while the transport optimum keeps moving samples into the high-reward region.</p>
       </div>
       <div class="lab" id="tilt-lab">
         <div class="lab-plot">
@@ -194,6 +194,7 @@
         $$u_t(x) = \lambda\, \nabla X_{t,1}(x)^\top\, \nabla r\big(X_{t,1}(x)\big)$$
       </div>
       <div class="prose">
+        <p>The signal has three parts. The flow map predicts the final sample from the current state. The reward gradient says how that final sample should change to improve the reward. Differentiating through the flow map says how to change the current state to produce that improvement. The whole signal costs one backpropagation through a single flow-map evaluation. The lookahead assumes that the rest of the trajectory follows the pretrained flow. After each correction we look ahead again from the updated state, so the procedure is greedy, with every correction using the future predicted by the pretrained dynamics.</p>
         <p>This signal is justified in two complementary ways. It is the optimal control to second order as $\lambda \to 0$, and for any $\lambda$ it is the optimal correction when the control acts only in a short window around the current time. In practice FMRG alternates two operations. A flow-map step approximates a finite-time transition of the pretrained dynamics in one evaluation, and a guidance step looks ahead with the flow map to the endpoint, evaluates the reward there, and corrects the current state.</p>
       </div>
       <figure class="fig fig-wide">
@@ -203,7 +204,7 @@
         <figcaption>One deterministic trajectory steered with flow-map steps and guidance steps (top), against a population of stochastic particles with resampling that targets the reward tilt (bottom).</figcaption>
       </figure>
       <div class="prose">
-        <p>The same view organizes existing guidance methods into a hierarchy. Exact optimal control uses the controlled flow map. FMRG uses the pretrained flow map. DPS replaces the flow-map endpoint with a single Euler step, the posterior mean, and so sits at the coarsest level of the hierarchy, together with methods such as FlowDPS and FlowChef that differ mainly in their guidance weights. Read this way, DPS is a one-step approximation of a control problem, rather than an approximation of the reward tilt. The difference is visible in style guidance, where the flow-map variants transfer the reference style and the denoiser-based approximations miss it or add artifacts.</p>
+        <p>The same view organizes existing guidance methods into a hierarchy. Exact optimal control uses the controlled flow map. FMRG uses the pretrained flow map. DPS replaces the flow-map endpoint with a single Euler step, the posterior mean, and so sits at the coarsest level of the hierarchy, together with methods such as FlowDPS and FlowChef that differ mainly in their guidance weights. Read this way, DPS is a one-step approximation of a control problem, rather than an approximation of the reward tilt. FMRG comes in two variants. FMRG-J backpropagates through the flow-map Jacobian as in the signal above, and FMRG-E drops the Jacobian and applies the reward gradient at the predicted endpoint directly, which saves memory. The difference across the hierarchy is visible in style guidance, where both flow-map variants transfer the reference style and their denoiser-based counterparts miss it or add artifacts.</p>
       </div>
       <figure class="fig fig-mid">
         <img src="assets/fmrg_style_hierarchy.webp" alt="Style guidance with FMRG-J and FMRG-E (flow map) against DPS and FlowChef (denoiser)">
@@ -233,13 +234,14 @@
         $$V^u_t(x) = \lambda\, r\big(X^u_{t,1}(x)\big) - \frac{1}{2}\int_t^1 \lVert u_\tau(X^u_{t,\tau}(x))\rVert^2\, d\tau, \qquad u^*_t = \nabla_x V^*_t$$
       </div>
       <div class="prose">
-        <p>The optimal control is the gradient of the optimal value function. WTF runs policy iteration. It fits the trainable control to the value gradient of a frozen copy of itself, then uses the result as the next reference. In the idealized population setting, a performance-difference identity shows that each such update improves the objective, and that the iteration can stop only at the optimal control.</p>
+        <p>The value function measures how well the current control will do from a given state, counting both the reward to come and the control effort still to spend. Its gradient points to the changes of that state that improve this remaining outcome, and the optimal control is exactly the gradient of the optimal value function. Policy iteration uses this to build a better control, evaluates the new control, and repeats. WTF runs policy iteration. It fits the trainable control to the value gradient of a frozen copy of itself, then uses the result as the next reference. In the idealized population setting, a performance-difference identity shows that each such update improves the objective, and that the iteration can stop only at the optimal control.</p>
         <p>The expensive part of this loop is the value. Estimating it for a stochastic process means rolling out the auxiliary diffusion to the final time and averaging over the noise. Here the flow map supplies the needed states with jumps. Sampling one intermediate time $\tau$ between $t$ and $1$ gives an unbiased estimate that takes two flow-map transitions in place of a multistep rollout.</p>
       </div>
       <div class="keybox narrow">
         $$\widehat V(t, x) = \lambda\, r(x_1) - \frac{1-t}{2}\, \lVert \bar u_\tau(x_\tau)\rVert^2, \qquad \tau\sim\mathrm{U}[t,1],\quad x_\tau = X_{t,\tau}(x),\quad x_1 = X_{\tau,1}(x_\tau)$$
       </div>
       <div class="prose">
+        <p>The estimator follows from a simple Monte Carlo idea. The reward needs only the endpoint. The remaining control cost is an integral over time, and we estimate it by sampling one time $\tau$ uniformly in $[t, 1]$, evaluating the control cost there, and multiplying by the length $1 - t$ of the remaining interval. The flow map reaches the sampled intermediate state and then the endpoint in two transitions. Averaged over the sampled time, this recovers the integral exactly when the transitions follow the reference dynamics.</p>
         <p>The only randomness in this estimate comes from a one-dimensional time integral, in contrast to the high-dimensional expectations behind the stochastic value functions of the reward tilt. Its gradient gives the regression target for the control.</p>
       </div>
       <div class="valuefig" id="valuefig">
