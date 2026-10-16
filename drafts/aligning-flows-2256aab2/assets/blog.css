@@ -139,3 +139,9 @@ details.aside .keybox { margin: .6rem auto; }
 .qrow-steps { grid-template-columns: repeat(4, 1fr); }
 .qrow-grid { grid-template-columns: repeat(4, 1fr); }
 .qrow-steps span:first-child { color: var(--ink-soft); }
+
+/* style comparison tiles */
+.srow-groups { grid-template-columns: 1fr 1fr 2fr 2fr; }
+.srow-steps, .srow-grid { grid-template-columns: repeat(6, 1fr); }
+.srow-steps span:nth-child(-n+2), .srow-steps span:nth-child(n+5) { color: var(--ink-soft); }
+@media (max-width: 640px) { .srow-steps span { font-size: .66rem; } }

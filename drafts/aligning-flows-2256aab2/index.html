@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=EB+Garamond:ital,wght@0,600;0,800;1,500;1,600&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;0,8..60,800;0,8..60,900;1,8..60,400&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wtf.css?v=2">
-  <link rel="stylesheet" href="assets/blog.css?v=18">
+  <link rel="stylesheet" href="assets/blog.css?v=19">
   <script>
     window.MathJax = {
       tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
@@ -225,8 +225,35 @@
         <p>A denoiser and a flow map both predict a clean sample from a noisy state, but they predict different things. The denoiser predicts the conditional mean over all clean samples consistent with the current state. The flow map predicts the destination of this particular deterministic trajectory. In the linear-interpolant setting, the conditional mean coincides with a single Euler step of the flow toward the endpoint. Replacing the flow-map endpoint and its derivative in the guidance signal with this Euler approximation recovers the guidance of diffusion posterior sampling (DPS). DPS therefore sits at the coarsest level of a hierarchy of approximations to the control problem, and FMRG one level closer to the exact control.</p>
         <p>FMRG comes in two variants. FMRG-J differentiates through the flow map as in the equation above, and FMRG-E uses the reward gradient at the predicted endpoint directly, omitting the flow-map Jacobian to save memory. Both keep the flow-map prediction of the endpoint. In style guidance, both flow-map variants transfer the reference style, while their denoiser-based counterparts miss it or add artifacts.</p>
       </div>
-      <figure class="fig fig-wide">
-        <img src="assets/fmrg_style_hierarchy.webp" alt="Style guidance with FMRG-J and FMRG-E (flow map) against DPS and FlowChef (denoiser)">
+      <figure class="fig fig-wide srow">
+        <div class="hf-groups srow-groups"><span class="hf-g">Reference</span><span class="hf-g">FLUX</span><span class="hf-g hf-wtf">Flow map</span><span class="hf-g">Denoiser</span></div>
+        <div class="hf-steps srow-steps"><span>style</span><span>unguided</span><span>FMRG-J</span><span>FMRG-E</span><span>DPS</span><span>FlowChef</span></div>
+        <div class="hf-grid srow-grid">
+          <img src="assets/style/style_00.webp" width="220" height="220" alt="Style example 1, style reference" loading="lazy" decoding="async">
+          <img src="assets/style/style_01.webp" width="220" height="220" alt="Style example 1, unguided" loading="lazy" decoding="async">
+          <img src="assets/style/style_02.webp" width="220" height="220" alt="Style example 1, FMRG-J" loading="lazy" decoding="async">
+          <img src="assets/style/style_03.webp" width="220" height="220" alt="Style example 1, FMRG-E" loading="lazy" decoding="async">
+          <img src="assets/style/style_04.webp" width="220" height="220" alt="Style example 1, DPS" loading="lazy" decoding="async">
+          <img src="assets/style/style_05.webp" width="220" height="220" alt="Style example 1, FlowChef" loading="lazy" decoding="async">
+          <img src="assets/style/style_10.webp" width="220" height="220" alt="Style example 2, style reference" loading="lazy" decoding="async">
+          <img src="assets/style/style_11.webp" width="220" height="220" alt="Style example 2, unguided" loading="lazy" decoding="async">
+          <img src="assets/style/style_12.webp" width="220" height="220" alt="Style example 2, FMRG-J" loading="lazy" decoding="async">
+          <img src="assets/style/style_13.webp" width="220" height="220" alt="Style example 2, FMRG-E" loading="lazy" decoding="async">
+          <img src="assets/style/style_14.webp" width="220" height="220" alt="Style example 2, DPS" loading="lazy" decoding="async">
+          <img src="assets/style/style_15.webp" width="220" height="220" alt="Style example 2, FlowChef" loading="lazy" decoding="async">
+          <img src="assets/style/style_20.webp" width="220" height="220" alt="Style example 3, style reference" loading="lazy" decoding="async">
+          <img src="assets/style/style_21.webp" width="220" height="220" alt="Style example 3, unguided" loading="lazy" decoding="async">
+          <img src="assets/style/style_22.webp" width="220" height="220" alt="Style example 3, FMRG-J" loading="lazy" decoding="async">
+          <img src="assets/style/style_23.webp" width="220" height="220" alt="Style example 3, FMRG-E" loading="lazy" decoding="async">
+          <img src="assets/style/style_24.webp" width="220" height="220" alt="Style example 3, DPS" loading="lazy" decoding="async">
+          <img src="assets/style/style_25.webp" width="220" height="220" alt="Style example 3, FlowChef" loading="lazy" decoding="async">
+          <img src="assets/style/style_30.webp" width="220" height="220" alt="Style example 4, style reference" loading="lazy" decoding="async">
+          <img src="assets/style/style_31.webp" width="220" height="220" alt="Style example 4, unguided" loading="lazy" decoding="async">
+          <img src="assets/style/style_32.webp" width="220" height="220" alt="Style example 4, FMRG-J" loading="lazy" decoding="async">
+          <img src="assets/style/style_33.webp" width="220" height="220" alt="Style example 4, FMRG-E" loading="lazy" decoding="async">
+          <img src="assets/style/style_34.webp" width="220" height="220" alt="Style example 4, DPS" loading="lazy" decoding="async">
+          <img src="assets/style/style_35.webp" width="220" height="220" alt="Style example 4, FlowChef" loading="lazy" decoding="async">
+        </div>
         <figcaption>Style guidance across the hierarchy. The flow-map variants (FMRG-J, FMRG-E) follow the style reference, while their denoiser-based counterparts miss the style or produce artifacts. DPS and FlowChef replace the flow-map endpoint with a single Euler step, and FlowDPS falls in the same family.</figcaption>
       </figure>
       <h3 class="sub">Results</h3>
