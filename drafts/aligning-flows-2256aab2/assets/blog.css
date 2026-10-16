@@ -108,3 +108,19 @@ details.aside .timeline { font-size: .86rem; }
 .post .keybox { overflow-x: auto; max-width: 100%; }
 .post mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; }
 @media (max-width: 760px) { .post .keybox mjx-container { font-size: 88%; } }
+
+/* equation hierarchy: only the central objective is tinted */
+.post .keybox:not(.accent) { background: none; border: 0; box-shadow: none; padding-top: .2rem; padding-bottom: .2rem; }
+details.aside .keybox { margin: .6rem auto; }
+/* subsections */
+.post h3.sub { max-width: 760px; margin: 2rem auto .7rem; font-family: var(--serif); font-weight: 600; font-size: 1.22rem; color: var(--ink); }
+.lab-cap { max-width: 720px; margin: -1.2rem auto 2rem; font-size: .9rem; line-height: 1.55; color: var(--ink-soft); text-align: center; }
+/* contents sidebar on wide screens */
+.toc { display: none; }
+@media (min-width: 1400px) {
+  .toc { display: block; position: fixed; top: 110px; left: max(1rem, calc(50% - 520px - 230px)); width: 200px; font-size: .84rem; line-height: 1.35; }
+  .toc-h { margin: 0 0 .6rem; font-size: .72rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint); }
+  .toc a { display: block; padding: .32rem 0 .32rem .7rem; border-left: 2px solid var(--line); color: var(--ink-soft); text-decoration: none; }
+  .toc a:hover { color: var(--accent); }
+  .toc a.on { color: var(--accent); border-left-color: var(--accent); font-weight: 600; }
+}
