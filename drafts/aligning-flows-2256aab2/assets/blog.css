@@ -105,3 +105,6 @@ details.aside .timeline { font-size: .86rem; }
 .pull-q-sm { font-size: clamp(1.15rem, 2.3vw, 1.45rem); border-color: color-mix(in srgb, var(--accent) 22%, transparent); }
 @media (max-width: 760px) { .needs { grid-template-columns: 1fr; } .need { border-left: 0; border-top: 1px solid var(--line); } .need:first-child { border-top: 0; } }
 .pull-q strong { color: var(--accent); }
+.post .keybox { overflow-x: auto; max-width: 100%; }
+.post mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; }
+@media (max-width: 760px) { .post .keybox mjx-container { font-size: 88%; } }

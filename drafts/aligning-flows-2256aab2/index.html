@@ -5,7 +5,7 @@
   <meta name="robots" content="noindex, nofollow, noarchive">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>How to Align Your Flow with Optimal Control</title>
-  <meta name="description" content="Why aligning flows with the KL reward tilt is awkward, how a transport regularizer turns alignment into deterministic optimal control, and why flow maps make that control problem cheap.">
+  <meta name="description" content="A transport regularizer turns reward alignment of flows into deterministic optimal control, and flow maps make that control problem efficient to solve, for both guidance and fine-tuning.">
   <meta property="og:title" content="How to Align Your Flow with Optimal Control">
   <meta property="og:type" content="article">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%235b3fb0'/%3E%3C/svg%3E">
@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=EB+Garamond:ital,wght@0,600;0,800;1,500;1,600&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;0,8..60,800;0,8..60,900;1,8..60,400&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wtf.css?v=2">
-  <link rel="stylesheet" href="assets/blog.css?v=15">
+  <link rel="stylesheet" href="assets/blog.css?v=16">
   <script>
     window.MathJax = {
       tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
@@ -49,36 +49,24 @@
     <section id="awkward">
       <h2>Why is aligning a flow so awkward?</h2>
       <div class="prose">
-        <p>The standard objective for reward alignment is KL-regularized reward maximization,</p>
+        <p>Let $r$ be a reward function that scores generated samples, such as a learned model of human preference. The standard objective for reward alignment is KL-regularized reward maximization,</p>
       </div>
       <div class="keybox narrow">
         $$\max_{\nu}\ \lambda\, \mathbb{E}_{x\sim\nu}[r(x)] - \mathrm{KL}(\nu \,\|\, \rho_1), \qquad \tilde\rho_1(x) \propto e^{\lambda r(x)}\, \rho_1(x),$$
       </div>
       <div class="prose">
         <p>where $\rho_1$ is the distribution of the pretrained model and $\lambda$ sets the strength of the reward. Its solution is the reward-tilted distribution $\tilde\rho_1$, which reweights the base distribution so that samples with high reward become more likely.</p>
+        <p>For an autoregressive language model this objective is convenient. The log-probability of a sequence is a sum of token log-probabilities, so the KL to the reference model can be estimated from samples, and sampling already consists of stochastic token decisions, which is what policy-gradient methods need. For a flow, both guidance and fine-tuning become harder.</p>
+        <p>Guidance toward the tilt needs an estimate of the reward a partially generated sample will eventually reach, averaged over the randomness of the rest of generation. That estimate comes from rollouts of an auxiliary stochastic process, and the exponential in the tilt lets a few high-reward rollouts dominate it. Multi-particle methods such as sequential Monte Carlo can target the tilt, but they need many particles and many integration steps, and exact sampling of the tilt can be computationally intractable even for simple quadratic rewards (<a href="https://arxiv.org/abs/2602.16570">Moitra et al., 2026</a>).</p>
       </div>
       <details class="aside">
-        <summary>A brief history of the KL objective</summary>
+        <summary>The exact tilt correction</summary>
         <div class="prose">
-          <p>KL-regularized reward maximization became the default through language models. Early work on fine-tuning language models from human preferences maximized a learned reward while penalizing the KL divergence from the pretrained model, so that the policy could not exploit the reward model by drifting away from natural text (<a href="https://arxiv.org/abs/1909.08593">Ziegler et al., 2019</a>; <a href="https://arxiv.org/abs/2009.01325">Stiennon et al., 2020</a>). The same objective trained InstructGPT (<a href="https://arxiv.org/abs/2203.02155">Ouyang et al., 2022</a>). Its optimum has a closed form, the pretrained distribution reweighted by the exponentiated reward (<a href="https://arxiv.org/abs/2205.11275">Korbak et al., 2022</a>), which Direct Preference Optimization turned into a simple training loss (<a href="https://arxiv.org/abs/2305.18290">Rafailov et al., 2023</a>).</p>
-        <p>Diffusion and flow models inherited this objective. Reinforcement learning methods for diffusion treat the denoising chain as a sequence of stochastic actions (<a href="https://arxiv.org/abs/2305.13301">Black et al., 2023</a>), with a KL penalty to the pretrained model (<a href="https://arxiv.org/abs/2305.16381">Fan et al., 2023</a>). Continuous-time formulations cast KL-regularized fine-tuning as entropy-regularized stochastic optimal control (<a href="https://arxiv.org/abs/2402.15194">Uehara et al., 2024</a>), and Adjoint Matching showed that reaching the reward tilt from a flow model requires a particular memoryless noise schedule (<a href="https://arxiv.org/abs/2409.08861">Domingo-Enrich et al., 2024</a>). Flow-GRPO converts the deterministic sampler into an equivalent stochastic one so that policy-gradient methods can explore (<a href="https://arxiv.org/abs/2505.05470">Liu et al., 2025</a>).</p>
+          <p>Sampling the tilt exactly adds to the velocity a correction proportional to $\nabla_x \log \mathbb{E}[e^{\lambda r(X_1)} \mid X_t = x]$, where $X$ follows an auxiliary memoryless stochastic process whose marginals at every time match those of the pretrained model, and the proportionality coefficient depends on the noise level of that process. The expectation runs over all stochastic continuations of the current state, which is why it has to be estimated by simulation.</p>
         </div>
-        <figure class="fig fig-wide">
-          <div class="timeline" role="img" aria-label="Timeline of KL-regularized reward alignment, from language models (2019 to 2023) to diffusion and flow models (2023 to 2025)">
-          <div class="tl-h"></div><div class="tl-h">Language models</div><div class="tl-h">Diffusion and flow models</div>
-          <div class="tl-y">2019</div><div class="tl-c tl-lm"><a href="https://arxiv.org/abs/1909.08593">KL-penalized RL from human preferences</a></div><div class="tl-c tl-dm"></div>
-          <div class="tl-y">2020</div><div class="tl-c tl-lm"><a href="https://arxiv.org/abs/2009.01325">Summarization from human feedback</a></div><div class="tl-c tl-dm"></div>
-          <div class="tl-y">2022</div><div class="tl-c tl-lm"><a href="https://arxiv.org/abs/2203.02155">InstructGPT</a><br><a href="https://arxiv.org/abs/2205.11275">The optimum is the reward tilt</a></div><div class="tl-c tl-dm"></div>
-          <div class="tl-y">2023</div><div class="tl-c tl-lm"><a href="https://arxiv.org/abs/2305.18290">DPO</a></div><div class="tl-c tl-dm"><a href="https://arxiv.org/abs/2305.13301">DDPO</a><br><a href="https://arxiv.org/abs/2305.16381">DPOK, with a KL penalty</a></div>
-          <div class="tl-y">2024</div><div class="tl-c tl-lm"></div><div class="tl-c tl-dm"><a href="https://arxiv.org/abs/2402.15194">Entropy-regularized control</a><br><a href="https://arxiv.org/abs/2409.08861">Adjoint Matching, memoryless noise</a></div>
-          <div class="tl-y">2025</div><div class="tl-c tl-lm"></div><div class="tl-c tl-dm"><a href="https://arxiv.org/abs/2505.05470">Flow-GRPO, ODE converted to SDE</a></div>
-        </div>
-          <figcaption>KL-regularized reward maximization moved from language models to diffusion and flow models. Each step on the flow side adds or relies on stochasticity to keep the objective tractable.</figcaption>
-        </figure>
       </details>
       <div class="prose">
-        <p>For an autoregressive language model this objective is convenient. The model assigns an exact probability to every sequence as a sum of token log-probabilities, so the KL to the reference model can be estimated from samples, and sampling already consists of stochastic token decisions, which is what policy-gradient methods need.</p>
-        <p>For a flow the same objective is much harder to use. The tilt is hard to sample. Exact sampling adds to the dynamics a correction $\nabla_x \log \mathbb{E}[e^{\lambda r(x_1)} \mid x_t = x]$, an expectation over an auxiliary stochastic process that runs to the end of generation, and the exponential lets a few high-reward samples dominate any estimate of it. Recent work shows that sampling the tilt is computationally intractable even for simple rewards, and multi-particle methods such as sequential Monte Carlo need many particles and many integration steps. Fine-tuning runs into a second problem. The likelihood of a flow requires integrating the divergence of its velocity along each trajectory, and changing a deterministic trajectory makes the KL between the old and new path distributions infinite. Common KL-based fine-tuning methods such as Adjoint Matching and Flow-GRPO therefore introduce stochastic dynamics. They convert the flow into a diffusion, fine-tune the diffusion, and convert the result back into a flow, even as the field moves toward deterministic samplers and flow maps that generate in a few steps.</p>
+        <p>Fine-tuning runs into a different problem. The likelihood of a flow requires integrating the divergence of its velocity along each trajectory, which makes the KL between pretrained and fine-tuned outputs expensive to evaluate. The tractable alternative used by common methods is a KL between path distributions, but changing a deterministic trajectory makes the old and new path laws singular, so that path-space KL is infinite. Methods such as <a href="https://arxiv.org/abs/2409.08861">Adjoint Matching</a> and <a href="https://arxiv.org/abs/2505.05470">Flow-GRPO</a> therefore introduce stochastic dynamics. They convert the flow into a diffusion with the same marginals, fine-tune the diffusion, and convert the result back into a flow.</p>
       </div>
       <figure class="fig fig-wide cvfig">
         <ol class="cv-steps" aria-hidden="true">
@@ -90,20 +78,22 @@
         <div class="convertfig" id="convertfig" role="img" aria-label="Deterministic flow paths gain noise to become a diffusion with the same marginals, the diffusion is fine-tuned so that its endpoints follow the reward-tilted distribution, and the noise is removed to give a deterministic flow again."></div>
         <figcaption>KL-based fine-tuning of a flow, in one dimension. The pretrained flow is converted into a diffusion with the same marginals, the diffusion is fine-tuned toward the reward tilt, and the result is converted back into a flow.</figcaption>
       </figure>
-      <p class="pull-q">Is KL really the right objective for aligning flows?</p>
+      <div class="prose">
+        <p>If the generator moves samples along a deterministic flow, we can instead measure departure from the pretrained model through that motion.</p>
+      </div>
     </section>
 
     <section id="closeness">
       <h2>A different notion of closeness</h2>
       <div class="prose">
-        <p>A flow generates by moving samples. Each noise sample $x_0 \sim \rho_0$ follows the pretrained velocity $\dot x_t = b_t(x_t)$ until it becomes a sample $x_1$. So we can measure departure from the pretrained model through that motion. Suppose we modify the pretrained velocity by adding a control $u_t$. Following the pretrained flow requires no control. Departing from it costs the squared size of the intervention, accumulated along the trajectory. We then maximize the terminal reward while paying for this effort.</p>
+        <p>A flow generates by moving samples. Each noise sample $x_0 \sim \rho_0$ follows the pretrained velocity $\dot x_t = b_t(x_t)$ until it becomes a sample $x_1$. Suppose we modify the pretrained velocity by adding a control $u_t$. Following the pretrained flow requires no control. Departing from it costs the squared size of the intervention, accumulated along the trajectory. We then maximize the terminal reward while paying for this effort.</p>
       </div>
       <div class="keybox narrow accent">
         $$\max_{u}\ \mathbb{E}_{x_0\sim\rho_0}\Big[\lambda\, r(x_1^u) - \frac{1}{2}\int_0^1 \lVert u_t(x_t^u)\rVert^2\, dt\Big] \quad\text{s.t.}\quad \dot x_t^u = b_t(x_t^u) + u_t(x_t^u)$$
       </div>
       <div class="prose">
         <p>This is a deterministic optimal control problem, and its solution is again a single deterministic flow with velocity $b_t + u_t^*$. No auxiliary diffusion appears anywhere. It is the same control problem that FMRG proposed for guidance, where it is solved one trajectory at a time.</p>
-        <p>WTF shows what this objective means at the level of distributions. The least control effort needed to steer the pretrained flow from a point $x$ to a point $y$ defines a cost $c_b(x, y)$, and the optimal transport cost $\mathcal{T}_b(\rho_0, \nu)$ built from it measures the least effort needed to reach a terminal distribution $\nu$. Maximizing reward regularized by $\mathcal{T}_b$ in place of the KL has the same optimal value as the control problem above.</p>
+        <p>WTF shows what this objective means at the level of distributions. The least control effort needed to steer the pretrained flow from a point $x$ to a point $y$ defines a cost $c_b(x, y)$, and the optimal transport cost $\mathcal{T}_b(\rho_0, \nu)$ built from it measures the least effort needed to reach a terminal distribution $\nu$. Maximizing reward regularized by $\mathcal{T}_b$ in place of the KL has the same optimal value as the control problem above. Although $\mathcal{T}_b$ is written with the noise distribution $\rho_0$, it measures departure from the pretrained generator, because its cost contains $b$ and following $b$ costs nothing. The only distribution reachable at zero cost is the pretrained one.</p>
       </div>
       <div class="keybox narrow">
         $$c_b(x, y) = \inf_{\omega_0 = x,\ \omega_1 = y}\ \frac{1}{2}\int_0^1 \lVert \dot\omega_t - b_t(\omega_t) \rVert^2\, dt, \qquad \mathcal{T}_b(\rho_0,\nu)=\inf_{\pi\in\Pi(\rho_0,\nu)}\int c_b(x,y)\,\pi(dx\,dy)$$
@@ -113,7 +103,7 @@
         <p>Replacing the KL with $\mathcal{T}_b$ changes what the optimum does. The problem decomposes over samples, so each noise sample is transported to the endpoint with its best tradeoff between reward and steering cost. The KL tilt instead reweights the base density according to reward. One consequence is easy to state. If two points have the same reward, any tilt multiplies both of their densities by the same factor $e^{\lambda r}$, so their density ratio never changes, whereas transport can move mass between them.</p>
       </div>
       <figure class="fig fig-wide">
-        <div class="tiltfig" id="tiltfig" role="img" aria-label="As the reward weight lambda grows from 0 to 3, the Wasserstein tilt moves each mode toward nearby high reward, while the reward tilt keeps every mode in place and only changes its height.">
+        <div class="tiltfig" id="tiltfig" role="img" aria-label="As the reward weight lambda grows from 0 to 3, the Wasserstein tilt moves each mode toward nearby high reward, while the reward tilt reweights the base density, which here mostly changes the height of each mode.">
           <div class="tf-t" style="left:24.09%">Wasserstein tilt (ours)</div>
           <div class="tf-t" style="left:75.18%">Reward tilt</div>
           <div class="tf-e" style="left:24.09%">$\arg\max_\nu \big\{\lambda\, \mathbb{E}_\nu[r] - \mathcal{T}_b(\rho_0,\nu)\big\}$</div>
@@ -126,10 +116,10 @@
           <div class="tf-c" style="left:75.18%">reweighting within existing support</div>
           <div class="tf-lam">$\lambda$ = <b>0.00</b></div>
         </div>
-        <figcaption>As $\lambda$ grows, the Wasserstein tilt moves each mode toward nearby high reward. The KL tilt reweights the base density by $e^{\lambda r}$, which here mostly changes the height of each mode. At $\lambda = 3$ this is Figure 1 of the WTF paper.</figcaption>
+        <figcaption>As $\lambda$ grows, the Wasserstein tilt moves each mode toward nearby high reward. The KL tilt reweights the base density by $e^{\lambda r}$, which here mostly changes the height of each mode. At $\lambda = 3$ this is Figure 2 of the WTF paper.</figcaption>
       </figure>
       <div class="prose">
-        <p>The difference matters most when high reward lies where the base model puts little mass. In one dimension both optima can be computed exactly. Hold the reward scale fixed and drag the reward location outward. While the reward sits near the base, both objectives raise the expected reward. As it moves into the tail, the KL tilt has less and less mass there to reweight and its expected reward falls toward the base, while the transport optimum keeps moving samples into the high-reward region.</p>
+        <p>The difference matters most when high reward lies where the base model puts little mass. Both distributions below are exact population optima, computed without training, so the comparison isolates the effect of the objective. Hold the reward scale fixed and drag the reward location into the tail of the base distribution. While the reward sits near the base, both objectives raise the expected reward. In the tail, the KL tilt has less and less mass there to reweight and its expected reward falls toward the base, while the transport optimum keeps moving samples into the high-reward region. The same value of $\lambda$ sets a different strength under each regularizer, so the example shows how the optima differ in kind.</p>
       </div>
       <div class="lab" id="tilt-lab">
         <div class="lab-plot">
@@ -169,9 +159,10 @@
     <section id="flow-maps">
       <h2>Why flow maps?</h2>
       <div class="prose">
-        <p>A flow model generates samples by following a velocity field from noise to data. Its flow map $X_{s,t}$ takes a state at time $s$ to the state these dynamics reach at time $t$. Learning this map lets us approximate that transition in a single network evaluation, including transitions that start from intermediate states.</p>
-        <p>This brings us to a question we found harder to answer than we expected. Distribution matching and adversarial training also produce strong one-step generators. If fast sampling were the whole story, it would not be clear what learning a flow map adds. There is a further puzzle. A flow map is trained to skip the trajectory, while the control problem is defined along it, so there is little reason to expect the map to help. It does, because it makes the flow <em>easy to control</em>.</p>
-        <p>Controlling a flow means steering samples while they are being generated, and that asks for more than a sample. To steer a half-generated sample, we need to know where it is heading, how that destination changes when we nudge the sample, and what happens along the way, since the control cost accumulates at intermediate times. A generator that maps noise to a sample answers none of these questions from an intermediate state. A flow map answers each of them with one evaluation.</p>
+        <p>Distribution matching and adversarial distillation also produce strong one-step generators. If fast sampling were the whole story, it would not be clear what learning a flow map adds.</p>
+        <p>A flow model generates samples by following a velocity field from noise to data. Its flow map $X_{s,t}$ sends a state at time $s$ to the state these dynamics reach at time $t$, so $X_{s,t}(x_s) = x_t$ along every trajectory. A learned flow map approximates this operator in one network evaluation. One-step sampling uses $X_{0,1}$, while alignment also uses maps that start at intermediate times.</p>
+        <p>This raises a puzzle. A flow map is trained to skip the trajectory, while the control problem is defined along it, so there is little reason to expect the map to help. It does, because it makes the flow <em>easy to control</em>.</p>
+        <p>Controlling a flow means steering samples while they are being generated, and that asks for more than a sample. To steer a half-generated sample, we need to know where it is heading, how its destination changes when we change the current state, and what happens along the way, since the control cost accumulates at intermediate times. An endpoint generator that maps noise to a sample does not supply these transitions from the intermediate states of the original flow. A flow map answers each question with one evaluation.</p>
       </div>
       <div class="needs">
         <div class="need"><p class="need-q">Where is the sample heading?</p><p class="need-a">$X_{t,1}(x)$</p><p class="need-d">the endpoint from the current state, where the reward is evaluated</p></div>
@@ -179,13 +170,7 @@
         <div class="need"><p class="need-q">What happens along the way?</p><p class="need-a">$X_{t,\tau}(x)$</p><p class="need-d">intermediate states, where the control cost is paid</p></div>
       </div>
       <div class="prose">
-        <p>Surprisingly, the flow map appears in the optimality conditions of the control problem itself. Along an optimal trajectory $x_t^*$, the optimal control satisfies</p>
-      </div>
-      <div class="keybox narrow">
-        $$u_t^* = \lambda\, \nabla X^{u^*}_{t,1}(x_t^*)^\top\, \nabla r\big(X^{u^*}_{t,1}(x_t^*)\big),$$
-      </div>
-      <div class="prose">
-        <p>where $X^{u^*}$ is the flow map of the controlled dynamics. The control at time $t$ is the reward gradient at the endpoint, pulled back through the map to the current state. For guidance, a flow map supplies this lookahead for deciding how to steer the current sample. For fine-tuning, it supplies the future states needed to evaluate and improve the current control. In both cases the flow map turns control into a handful of network evaluations, and that is what makes alignment cheap.</p>
+        <p>Other generators can also be differentiated, seed-optimized and fine-tuned with rewards, and training recipes such as distribution matching can be applied to models that represent flow maps. The advantage here is access to the dynamics that the control formulation needs. For guidance, the flow map predicts where the current sample is heading and how a change now would change its final reward. For fine-tuning, it supplies the future states needed to evaluate and improve the current control.</p>
       </div>
       <p class="pull-q pull-q-sm">A one-step generator makes a flow fast to sample.<br>A flow map makes it <strong>easy to control</strong>.</p>
     </section>
@@ -193,14 +178,20 @@
     <section id="guidance">
       <h2>Guidance by looking ahead</h2>
       <div class="prose">
-        <p>At inference time, FMRG solves the control problem along a single trajectory. The exact control is circular, because it needs the flow map of the controlled dynamics, which is the trajectory we are trying to construct. FMRG replaces it with the pretrained flow map.</p>
+        <p>At test time, FMRG solves the control problem along a single trajectory. Its guidance takes three steps. Predict the endpoint from the current state with the pretrained flow map, evaluate the reward there, and differentiate to find how changing the current state would improve that future reward.</p>
       </div>
       <div class="keybox narrow">
         $$u_t(x) = \lambda\, \nabla X_{t,1}(x)^\top\, \nabla r\big(X_{t,1}(x)\big)$$
       </div>
       <div class="prose">
-        <p>The signal has three parts. The flow map predicts the final sample from the current state. The reward gradient says how that final sample should change to improve the reward. Differentiating through the flow map says how to change the current state to produce that improvement. The whole signal costs one backpropagation through a single flow-map evaluation. The lookahead assumes that the rest of the trajectory follows the pretrained flow. After each correction we look ahead again from the updated state, so the procedure is greedy, with every correction using the future predicted by the pretrained dynamics.</p>
-        <p>This signal is justified in two complementary ways. It is the optimal control to second order as $\lambda \to 0$, and for any $\lambda$ it is the optimal correction when the control acts only in a short window around the current time. In practice FMRG alternates two operations. A flow-map step approximates a finite-time transition of the pretrained dynamics in one evaluation, and a guidance step looks ahead with the flow map to the endpoint, evaluates the reward there, and corrects the current state.</p>
+        <p>The whole signal costs one backpropagation through a single flow-map evaluation. It is greedy, because the lookahead assumes no further intervention, even though guidance is applied again at later steps.</p>
+        <p>The exact optimal control has the same form, with the flow map of the controlled dynamics in place of the pretrained one. Along an optimal trajectory $x_t^*$, holding the control fixed when differentiating the trajectory, the maximum principle gives</p>
+      </div>
+      <div class="keybox narrow">
+        $$u_t^* = \lambda\, \nabla X^{u^*}_{t,1}(x_t^*)^\top\, \nabla r\big(X^{u^*}_{t,1}(x_t^*)\big).$$
+      </div>
+      <div class="prose">
+        <p>This is circular, because the controlled flow map describes the trajectory we are trying to construct. Using the pretrained map instead is justified in two complementary ways. It approximates the optimal control with error $O(\lambda^2)$ as $\lambda \to 0$, and for any $\lambda$ it is the optimal correction when the control acts only in a vanishingly short window around the current time. In practice FMRG alternates two operations. A flow-map step approximates a finite-time transition of the pretrained dynamics in one evaluation, and a guidance step applies the correction above.</p>
       </div>
       <figure class="fig fig-wide">
         <div class="embed" style="aspect-ratio: 388.09 / 223.94">
@@ -209,21 +200,20 @@
         <figcaption>One deterministic trajectory steered with flow-map steps and guidance steps (top), against a population of stochastic particles with resampling that targets the reward tilt (bottom).</figcaption>
       </figure>
       <div class="prose">
-        <p>The same view organizes existing guidance methods into a hierarchy. Exact optimal control uses the controlled flow map. FMRG uses the pretrained flow map. DPS replaces the flow-map endpoint with a single Euler step, the posterior mean, and so sits at the coarsest level of the hierarchy, together with methods such as FlowDPS and FlowChef that differ mainly in their guidance weights. Read this way, DPS is a one-step approximation of a control problem, rather than an approximation of the reward tilt. FMRG comes in two variants. FMRG-J backpropagates through the flow-map Jacobian as in the signal above, and FMRG-E drops the Jacobian and applies the reward gradient at the predicted endpoint directly, which saves memory. The difference across the hierarchy is visible in style guidance, where both flow-map variants transfer the reference style and their denoiser-based counterparts miss it or add artifacts.</p>
+        <p>The same view gives DPS an interpretation through deterministic control. In the linear-interpolant setting, the denoiser's prediction of the endpoint, the conditional mean, coincides with a single Euler step of the flow, while a flow map predicts where the deterministic trajectory actually ends. Replacing the flow-map endpoint and its derivative with the Euler approximation recovers the DPS signal, so DPS sits at the coarsest level of a hierarchy whose finest level is exact optimal control.</p>
+        <p>FMRG comes in two variants. FMRG-J differentiates through the flow map as above, and FMRG-E uses the reward gradient at the predicted endpoint without the flow-map Jacobian, which saves memory. In style guidance, both flow-map variants transfer the reference style, while their denoiser-based counterparts miss it or add artifacts.</p>
       </div>
       <figure class="fig fig-mid">
         <img src="assets/fmrg_style_hierarchy.webp" alt="Style guidance with FMRG-J and FMRG-E (flow map) against DPS and FlowChef (denoiser)">
-        <figcaption>Style guidance across the hierarchy. The flow-map variants (FMRG-J, FMRG-E) follow the style reference, while their denoiser-based counterparts (DPS, FlowChef) miss the style or produce artifacts.</figcaption>
+        <figcaption>Style guidance across the hierarchy. The flow-map variants (FMRG-J, FMRG-E) follow the style reference, while their denoiser-based counterparts miss the style or produce artifacts. DPS and FlowChef replace the flow-map endpoint with a single Euler step, and FlowDPS falls in the same family.</figcaption>
       </figure>
       <div class="prose">
-        <p>Because each step uses an accurate lookahead, guidance needs very few network evaluations. On GenEval, FMRG matches a multi-particle sampler that targets the reward tilt with <strong>70× fewer</strong> network evaluations, and on latent inverse problems it outperforms DPS, FlowDPS and FlowChef with up to <strong>10× fewer</strong>.</p>
+        <p>Guidance strength and early stopping, which applies guidance only on an early portion of the trajectory, control over-optimization of the reward. Because each step uses an accurate lookahead, guidance needs few network function evaluations (NFEs), the number of model calls per sample. On GenEval, which scores compositional accuracy with object detectors that are independent of the reward used for guidance, FMRG reaches the 0.77 of flow map trajectory tilting, a multi-particle sampler that targets the reward tilt, with 20 NFEs where that method uses 1400. That is <strong>70× fewer</strong> network evaluations at matched accuracy. On latent inverse problems, FMRG outperforms DPS, FlowDPS and FlowChef with up to <strong>10× fewer</strong>.</p>
       </div>
-      <div>
-        <figure class="fig fig-narrow">
+      <figure class="fig fig-narrow">
           <img src="assets/fmrg_pareto.png" alt="GenEval accuracy against NFE for FMRG and baselines">
           <figcaption>GenEval accuracy against NFE with FLUX. FMRG-J reaches 0.80 at 100 NFEs, and matches the 0.77 of flow map trajectory tilting (dashed), which uses 1400 NFEs, at 20 NFEs.</figcaption>
         </figure>
-      </div>
       <figure class="fig fig-wide">
         <img src="assets/fmrg_aesthetic.webp" alt="An unguided sample and FMRG aesthetic guidance at 5, 9 and 13 NFEs">
         <figcaption>Aesthetic guidance with a human-preference reward at 5, 9 and 13 NFEs, next to the unguided sample.</figcaption>
@@ -233,21 +223,22 @@
     <section id="fine-tuning">
       <h2>Fine-tuning by learning the control</h2>
       <div class="prose">
-        <p>Guidance solves the control problem anew for every sample. Fine-tuning learns the optimal control once and writes it into the model. WTF does this with the value function, the reward still to come from a state minus the control energy still to spend.</p>
+        <p>The two methods meet at the value function. With no future control, the value of a state is the reward it will reach, $V_t^0(x) = \lambda\, r(X_{t,1}(x))$, and its gradient is exactly the FMRG-J signal. FMRG looks ahead under the pretrained dynamics. WTF evaluates and improves a control that changes during training, so its value must also count the control cost still to come.</p>
+        <p>Guidance solves the control problem anew for every sample. Fine-tuning learns the optimal control once and writes it into the model. The value of a control at a state is the reward its trajectory reaches minus the control cost still to spend,</p>
       </div>
       <div class="keybox narrow">
         $$V^u_t(x) = \lambda\, r\big(X^u_{t,1}(x)\big) - \frac{1}{2}\int_t^1 \lVert u_\tau(X^u_{t,\tau}(x))\rVert^2\, d\tau, \qquad u^*_t = \nabla_x V^*_t$$
       </div>
       <div class="prose">
-        <p>The value function measures how well the current control will do from a given state, counting both the reward to come and the control effort still to spend. Its gradient points to the changes of that state that improve this remaining outcome, and the optimal control is exactly the gradient of the optimal value function. Policy iteration uses this to build a better control, evaluates the new control, and repeats. WTF runs policy iteration. It fits the trainable control to the value gradient of a frozen copy of itself, then uses the result as the next reference. In the idealized population setting, a performance-difference identity shows that each such update improves the objective, and that the iteration can stop only at the optimal control.</p>
-        <p>The expensive part of this loop is the value. Estimating it for a stochastic process means rolling out the auxiliary diffusion to the final time and averaging over the noise. Here the flow map supplies the needed states with jumps. Sampling one intermediate time $\tau$ between $t$ and $1$ gives an unbiased estimate that takes two flow-map transitions in place of a multistep rollout.</p>
+        <p>Its gradient points to changes of the state that improve this remaining outcome, and the optimal control is exactly the gradient of the optimal value function. WTF improves its control by policy iteration. It freezes a reference control $\bar u$, estimates its value gradient, fits an updated control to that target, and refreshes the reference. In the idealized population setting, a performance-difference identity shows that each such update improves the objective, and that the iteration can stop only at the optimal control.</p>
+        <p>Updating the control changes its trajectories, so a map of the original dynamics no longer predicts the right futures. WTF therefore learns the velocity and continually self-distills its flow map together, and the updated map $X^{\bar u}$ supplies the future states for the next update. From a state $x_t$, the value of the reference control takes two transitions of that map to estimate.</p>
       </div>
       <div class="keybox narrow">
-        $$\widehat V(t, x) = \lambda\, r(x_1) - \frac{1-t}{2}\, \lVert \bar u_\tau(x_\tau)\rVert^2, \qquad \tau\sim\mathrm{U}[t,1],\quad x_\tau = X_{t,\tau}(x),\quad x_1 = X_{\tau,1}(x_\tau)$$
+        $$\widehat V(t, x_t) = \lambda\, r(x_1) - \frac{1-t}{2}\, \lVert \bar u_\tau(x_\tau)\rVert^2, \qquad \tau\sim\mathrm{U}[t,1],\quad x_\tau = X^{\bar u}_{t,\tau}(x_t),\quad x_1 = X^{\bar u}_{\tau,1}(x_\tau)$$
       </div>
       <div class="prose">
-        <p>The estimator follows from a simple Monte Carlo idea. The reward needs only the endpoint. The remaining control cost is an integral over time, and we estimate it by sampling one time $\tau$ uniformly in $[t, 1]$, evaluating the control cost there, and multiplying by the length $1 - t$ of the remaining interval. The flow map reaches the sampled intermediate state and then the endpoint in two transitions. Averaged over the sampled time, this recovers the integral exactly when the transitions follow the reference dynamics.</p>
-        <p>The map learned to accelerate sampling therefore also supplies what is needed to improve the model, with two evaluations in place of a learned critic or a full rollout. The only randomness in this estimate comes from a one-dimensional time integral, in contrast to the high-dimensional expectations behind the stochastic value functions of the reward tilt. Its gradient gives the regression target for the control.</p>
+        <p>Sample $\tau$ uniformly between $t$ and $1$. The transition from $x_t$ to $x_\tau$ gives the state where the control cost is evaluated, and multiplying that cost by $1 - t$ estimates the remaining integral. The transition from $x_\tau$ to $x_1$ gives the endpoint where the reward is evaluated. Differentiating the estimate with respect to $x_t$ gives the regression target for the control. With an exact reference map the estimate is unbiased, and its only randomness is the one-dimensional time sample, in contrast to the high-dimensional expectations behind the stochastic value functions of the reward tilt. In practice the remaining error comes from the learned map.</p>
+        <p>The map learned to accelerate sampling therefore also supplies what is needed to improve the model, without a learned critic or a full rollout. We call this simulation-free reinforcement learning, in the sense that the rollouts it needs are amortized by the flow map.</p>
       </div>
       <div class="valuefig" id="valuefig">
         <article class="vf-panel" data-kind="ac" data-aria="Actor-critic: the state passes once through a learned critic network that outputs the value estimate.">
@@ -273,16 +264,15 @@
         </article>
       </div>
       <div class="prose">
-        <p>There is a catch. As the control improves, the trajectories change, and a flow map distilled only from the original model would predict the wrong futures. WTF therefore updates the velocity and the flow map together. Regressing the velocity onto the estimated value gradient improves the control, and self-distillation teaches the map to follow the updated velocity, so the next iteration can evaluate the new control with the same two jumps. Keeping the two in step matters. Backpropagating the terminal reward directly through the map lets the endpoint map gain reward while the velocity fails to learn the corresponding dynamics. In the idealized setting, every fixed point of the loss is the optimal control together with its flow map.</p>
-        <p>The output is a fine-tuned flow map, so the same checkpoint generates at any budget from one step to many, without a separate distillation stage. We call this simulation-free reinforcement learning, since the rollouts it needs are amortized by the flow map.</p>
-        <p>The efficiency gain is large. WTF reaches the peak rewards of Flow-GRPO and Adjoint Matching, both KL-regularized methods that rely on stochastic sampling, with <strong>280×</strong> and <strong>47×</strong> less training compute.</p>
+        <p>Keeping the velocity and the map consistent matters. Backpropagating the terminal reward directly through the map lets the reward improve through the endpoint map while the velocity fails to learn the corresponding dynamics. WTF instead regresses the velocity onto the estimated value gradient and distills the map from that velocity. The large-scale image experiments use a Euclidean variant of the reward gradient, which keeps the map's endpoint prediction and drops its Jacobian from the reward term. In the idealized setting, every fixed point of the loss is the optimal control together with its flow map. The output is a fine-tuned flow map, so the same checkpoint generates at any budget from one step to many, without post-hoc distillation.</p>
+        <p>WTF reaches the peak rewards of Flow-GRPO and Adjoint Matching, both KL-regularized methods that rely on stochastic sampling, with <strong>280×</strong> and <strong>47×</strong> less fine-tuning compute.</p>
       </div>
       <figure class="cfig" id="computefig" data-src="assets/compute_curves.json">
         <div class="cf-stage"></div>
-        <figcaption>Text-to-image (TiM, HPSv2) at 50 NFE against cumulative training compute, with all methods starting from the same flow map and given about 48 GPU-hours on one node of eight H100s. Each horizontal span runs from where WTF first reaches a baseline's peak reward to where that baseline reaches it. Shading denotes one standard error above and below the mean.</figcaption>
+        <figcaption>Text-to-image HPSv2 at 50 NFE against cumulative fine-tuning compute, with all methods starting from the same pretrained flow map. The initial flow-map distillation is not counted. Each horizontal span runs from where WTF first reaches a baseline's peak reward to where that baseline reaches it. Shading denotes one standard error above and below the mean.</figcaption>
       </figure>
       <div class="prose">
-        <p>At the end of the same budget, WTF also reaches a higher reward with comparable diversity, and keeps it at four steps.</p>
+        <p>At the end of training, WTF also reaches a higher reward with comparable diversity, and keeps it at four steps. In the table, HPSv2 is the training reward, PickScore and ImageReward are additional reward evaluations, and DreamSim and CLIP measure diversity as the spread among samples, with higher values meaning more spread.</p>
       </div>
       <div class="table-wrap">
         <table class="comparison-table">
@@ -304,12 +294,12 @@
       </figure>
     </section>
 
-    <section id="takeaways">
-      <h2>Takeaway</h2>
+    <section id="looking-forward">
+      <h2>Looking Forward</h2>
       <div class="prose takeaway">
-        <p>Every alignment method starts from a choice of what it means to stay close to the pretrained model. That choice is easy to treat as fixed, because the KL objective arrived with mature tools and a clean closed form. But the objective decides which quantities must be computed, and so which algorithms are practical. For flows, choosing KL turned alignment into a problem about stochastic processes, and much of the effort went into building those processes.</p>
-        <p>Matching the objective to the model changes what is hard. A flow moves samples, so we measured closeness by how much that motion has to change. The resulting problem lives on the flow, its solution is expressed through the flow map, and the objects we built to sample faster turn out to be what makes alignment cheap.</p>
-        <p>We expect this to hold beyond these two papers. Accelerated samplers such as flow maps are infrastructure for post-training, and an objective adopted from one kind of model deserves a second look when the model we train has a different structure.</p>
+        <p>These two papers suggest that the objective for reward alignment deserves to be reconsidered alongside the models we want to align. Measuring departure through the pretrained dynamics leads to a deterministic control problem that supports both guidance and fine-tuning. The choice of regularizer changes both the distribution we seek and the computations needed to reach it.</p>
+        <p>From this perspective, flow maps emerge as a foundational primitive for efficient reward alignment. Their ability to predict future states makes it possible to evaluate and improve a generative trajectory without simulating every intermediate step. FMRG uses this capability for guidance at test time, while WTF uses it to learn an improved generator. Continual self-distillation preserves this capability as the model changes, so the fine-tuned model remains a flow map that supports both few-step generation and further alignment.</p>
+        <p>We believe this role extends beyond the methods developed here. As reward feedback becomes a larger part of training generative models, efficiently evaluating the consequences of the model's own decisions becomes increasingly important. Flow maps provide precisely this capability. Together, these results highlight a dual role for flow maps as primitives for fast generation and efficient control. We hope they encourage further exploration of flow maps and the alignment objectives that make use of their structure.</p>
       </div>
     </section>
 
