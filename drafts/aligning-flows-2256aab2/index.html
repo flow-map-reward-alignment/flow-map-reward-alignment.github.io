@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=EB+Garamond:ital,wght@0,600;0,800;1,500;1,600&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;0,8..60,800;0,8..60,900;1,8..60,400&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wtf.css?v=2">
-  <link rel="stylesheet" href="assets/blog.css?v=17">
+  <link rel="stylesheet" href="assets/blog.css?v=18">
   <script>
     window.MathJax = {
       tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
@@ -233,16 +233,23 @@
       <div class="prose">
         <p>Because each step uses an accurate lookahead, guidance needs few network function evaluations (NFEs), the number of model calls per sample. On GenEval, which scores compositional accuracy with object detectors that are independent of the reward used for guidance, FMRG reaches the 0.77 of flow map trajectory tilting, a multi-particle sampler that targets the reward tilt, with 20 NFEs where that method uses 1400. That is <strong>70× fewer</strong> network evaluations at matched accuracy.</p>
       </div>
-      <figure class="fig fig-narrow">
-          <img src="assets/fmrg_pareto.png" alt="GenEval accuracy against NFE for FMRG and baselines">
-          <figcaption>GenEval accuracy against NFE with FLUX. FMRG-J reaches 0.80 at 100 NFEs, and matches the 0.77 of flow map trajectory tilting (dashed), which uses 1400 NFEs, at 20 NFEs.</figcaption>
+      <figure class="cfig" id="genevalfig">
+          <div class="cf-stage"></div>
+          <figcaption>GenEval accuracy against NFE on FLUX. FMRG-J reaches 0.80 at 100 NFEs and matches the 0.77 of flow map trajectory tilting, which uses 1400 NFEs, at 20 NFEs.</figcaption>
         </figure>
       <div class="prose">
         <p>On latent inverse problems, FMRG outperforms DPS, FlowDPS and FlowChef with up to <strong>10× fewer</strong> NFEs, and aesthetic improvements are visible with as few as five.</p>
       </div>
-      <figure class="fig fig-wide">
-        <img src="assets/fmrg_aesthetic.webp" alt="An unguided sample and FMRG aesthetic guidance at 5, 9 and 13 NFEs">
-        <figcaption>Aesthetic guidance with a human-preference reward at 5, 9 and 13 NFEs, next to the unguided sample.</figcaption>
+      <figure class="fig fig-wide qrow">
+        <div class="hf-groups qrow-groups"><span class="hf-g">FLUX</span><span class="hf-g hf-wtf">+ FMRG</span></div>
+        <div class="hf-steps qrow-steps"><span>unguided</span><span>4 steps</span><span>8 steps</span><span>12 steps</span></div>
+        <div class="hf-grid qrow-grid">
+          <img src="assets/abstract_flux.webp" width="512" height="512" alt="Abstract human form, unguided FLUX" decoding="async">
+          <img src="assets/abstract_s4.webp" width="512" height="512" alt="Abstract human form, FMRG with 4 steps" decoding="async">
+          <img src="assets/abstract_s8.webp" width="512" height="512" alt="Abstract human form, FMRG with 8 steps" decoding="async">
+          <img src="assets/abstract_s12.webp" width="512" height="512" alt="Abstract human form, FMRG with 12 steps" decoding="async">
+        </div>
+        <figcaption>&ldquo;Abstract human form, impressionist strokes, pastel colors, dreamy texture, soft focus.&rdquo; Aesthetic guidance with a human-preference reward on FLUX, from the same starting noise as the unguided sample.</figcaption>
       </figure>
     </section>
 
@@ -325,8 +332,41 @@
         <p>The same fine-tuned checkpoint keeps its quality at few-step budgets without a separate distillation stage.</p>
       </div>
       <figure class="fig fig-wide">
-        <img src="assets/wtf_samples.webp" alt="Base model at 50 steps and WTF at few steps and 50 steps">
-        <figcaption>Flow maps fine-tuned with WTF for HPSv2. WTF at 4 steps (text-to-image, left) and 1 step (ImageNet-256, right) matches the quality of its own 50-step generation. The base model is shown at 50 steps.</figcaption>
+        <div class="hf">
+        <div class="hf-block">
+          <p class="hf-task">Text-to-image</p>
+          <div class="hf-groups"><span class="hf-g">Base</span><span class="hf-g hf-wtf">WTF</span></div>
+          <div class="hf-steps"><span>50 steps</span><span>4 steps</span><span>50 steps</span></div>
+          <div class="hf-grid">
+            <img src="assets/hero/t2i_00.webp" width="384" height="384" alt="The god dreaming at the end of time, base model, 50 steps" decoding="async" loading="lazy">
+            <img src="assets/hero/t2i_01.webp" width="384" height="384" alt="The god dreaming at the end of time, WTF, 4 steps" decoding="async" loading="lazy">
+            <img src="assets/hero/t2i_02.webp" width="384" height="384" alt="The god dreaming at the end of time, WTF, 50 steps" decoding="async" loading="lazy">
+            <img src="assets/hero/t2i_10.webp" width="384" height="384" alt="An otherworldly world by Fuco Ueda, base model, 50 steps" decoding="async" loading="lazy">
+            <img src="assets/hero/t2i_11.webp" width="384" height="384" alt="An otherworldly world by Fuco Ueda, WTF, 4 steps" decoding="async" loading="lazy">
+            <img src="assets/hero/t2i_12.webp" width="384" height="384" alt="An otherworldly world by Fuco Ueda, WTF, 50 steps" decoding="async" loading="lazy">
+            <img src="assets/hero/t2i_20.webp" width="384" height="384" alt="A skull-shaped island painted by Ghibli, base model, 50 steps" decoding="async" loading="lazy">
+            <img src="assets/hero/t2i_21.webp" width="384" height="384" alt="A skull-shaped island painted by Ghibli, WTF, 4 steps" decoding="async" loading="lazy">
+            <img src="assets/hero/t2i_22.webp" width="384" height="384" alt="A skull-shaped island painted by Ghibli, WTF, 50 steps" decoding="async" loading="lazy">
+          </div>
+        </div>
+        <div class="hf-block">
+          <p class="hf-task">ImageNet-256</p>
+          <div class="hf-groups"><span class="hf-g">Base</span><span class="hf-g hf-wtf">WTF</span></div>
+          <div class="hf-steps"><span>50 steps</span><span>1 step</span><span>50 steps</span></div>
+          <div class="hf-grid">
+            <img src="assets/hero/in_00.webp" width="384" height="384" alt="Platypus, base model, 50 steps" decoding="async" loading="lazy">
+            <img src="assets/hero/in_01.webp" width="384" height="384" alt="Platypus, WTF, 1 step" decoding="async" loading="lazy">
+            <img src="assets/hero/in_02.webp" width="384" height="384" alt="Platypus, WTF, 50 steps" decoding="async" loading="lazy">
+            <img src="assets/hero/in_10.webp" width="384" height="384" alt="Shetland sheepdog, base model, 50 steps" decoding="async" loading="lazy">
+            <img src="assets/hero/in_11.webp" width="384" height="384" alt="Shetland sheepdog, WTF, 1 step" decoding="async" loading="lazy">
+            <img src="assets/hero/in_12.webp" width="384" height="384" alt="Shetland sheepdog, WTF, 50 steps" decoding="async" loading="lazy">
+            <img src="assets/hero/in_20.webp" width="384" height="384" alt="Volcano, base model, 50 steps" decoding="async" loading="lazy">
+            <img src="assets/hero/in_21.webp" width="384" height="384" alt="Volcano, WTF, 1 step" decoding="async" loading="lazy">
+            <img src="assets/hero/in_22.webp" width="384" height="384" alt="Volcano, WTF, 50 steps" decoding="async" loading="lazy">
+          </div>
+        </div>
+        </div>
+        <figcaption>Flow maps fine-tuned with WTF for HPSv2. WTF at 4 steps (text-to-image) and 1 step (ImageNet-256) matches the quality of its own 50-step generation. The base model is shown at 50 steps.</figcaption>
       </figure>
     </section>
 
@@ -355,6 +395,7 @@
   <script src="assets/convert-anim.js?v=2"></script>
   <script src="assets/tilt-lab.js"></script>
   <script src="assets/computefig.js"></script>
+  <script src="assets/genevalfig.js"></script>
   <script src="assets/valuefig.js"></script>
 <script>
 // highlight the current section in the contents sidebar
