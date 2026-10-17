@@ -464,16 +464,14 @@
  document.querySelectorAll('main section[id]').forEach(function(s){io.observe(s)});})();
 </script>
 <script>
-// aesthetic row: cycles human form -> eye -> sumi-e only while hovered; leaving returns to human form
+// aesthetic row: each hover advances to the next example and stays there; changes are locked for 3 s
 (function(){var f=document.querySelector('figure.qrow');if(!f)return;
- var P=f.dataset.prompts.split('|'),cap=f.querySelector('.qprompt'),cur=0,timer=null,
-     still=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
- function show(k){if(k===cur)return;cur=k;f.querySelectorAll('.qcell img').forEach(function(im){im.classList.toggle('on',+im.dataset.set===k)});
-   cap.style.opacity=0;setTimeout(function(){cap.textContent='\u201c'+P[k]+'\u201d';cap.style.opacity=1},250);}
- function next(){show((cur+1)%P.length);}
- f.addEventListener('mouseenter',function(){if(still)return;clearInterval(timer);next();timer=setInterval(next,1900);});
- f.addEventListener('mouseleave',function(){clearInterval(timer);timer=null;show(0);});
- f.addEventListener('click',function(e){if(e.pointerType==='mouse'||timer)return;next();});
+ var P=f.dataset.prompts.split('|'),cap=f.querySelector('.qprompt'),cur=0,lockedUntil=0,LOCK=3000;
+ function show(k){cur=k;f.querySelectorAll('.qcell img').forEach(function(im){im.classList.toggle('on',+im.dataset.set===k)});
+   cap.style.opacity=0;setTimeout(function(){cap.textContent='“'+P[k]+'”';cap.style.opacity=1},250);}
+ function advance(){var now=Date.now();if(now<lockedUntil)return;lockedUntil=now+LOCK;show((cur+1)%P.length);}
+ f.addEventListener('mouseenter',advance);
+ f.addEventListener('click',function(e){if(e.pointerType!=='mouse')advance();});
 })();
 </script>
 </body>
