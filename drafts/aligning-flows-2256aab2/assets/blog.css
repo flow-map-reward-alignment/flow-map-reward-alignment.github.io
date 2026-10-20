@@ -211,3 +211,14 @@ details.aside .keybox { margin: .6rem auto; }
 .fo-lab span { font-family: var(--sans); font-weight: 500; font-size: .82em; }
 .fo-top { top: 1%; color: var(--accent); }
 .fo-bot { top: 58.5%; color: #b5494a; }
+
+/* style comparison as a stepper */
+.srow-grid { display: grid; grid-template-columns: 1fr !important; }
+.srow-slide { grid-area: 1 / 1; display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; opacity: 0; visibility: hidden; transition: opacity .35s ease, visibility 0s linear .35s; }
+.srow-slide.on { opacity: 1; visibility: visible; transition: opacity .35s ease; }
+.srow-slide img { width: 100%; height: auto; aspect-ratio: 1; display: block; }
+.srow-nav { display: flex; align-items: center; justify-content: center; gap: .9rem; margin-top: .7rem; }
+.srow-btn { width: 2rem; height: 2rem; border-radius: 50%; border: 1px solid var(--line-strong); background: #fff; color: var(--ink-soft); font-size: 1.3rem; line-height: 1; cursor: pointer; transition: border-color .2s, color .2s; }
+.srow-btn:hover { border-color: var(--accent); color: var(--accent); }
+.srow-count { font: 500 .9rem var(--sans); color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.srow-count b { color: var(--ink); }
