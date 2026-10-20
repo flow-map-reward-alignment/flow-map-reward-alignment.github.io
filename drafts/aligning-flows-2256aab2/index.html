@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=EB+Garamond:ital,wght@0,600;0,800;1,500;1,600&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;0,8..60,800;0,8..60,900;1,8..60,400&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wtf.css?v=2">
-  <link rel="stylesheet" href="assets/blog.css?v=28">
+  <link rel="stylesheet" href="assets/blog.css?v=29">
   <script>
     window.MathJax = {
       tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
@@ -36,8 +36,8 @@
     <a href="#awkward">Why is aligning a flow so awkward?</a>
     <a href="#closeness">A different notion of closeness</a>
     <a href="#flow-maps">Why flow maps?</a>
-    <a href="#guidance">Guidance by looking ahead</a>
-    <a href="#fine-tuning">Fine-tuning by learning the control</a>
+    <a href="#guidance">Guidance by looking ahead</a><a class="sub" href="#fmrg-algorithm">The FMRG algorithm</a>
+    <a href="#fine-tuning">Fine-tuning by learning the control</a><a class="sub" href="#wtf-algorithm">The WTF algorithm</a>
     <a href="#looking-forward">Looking Forward</a>
   </nav>
   <main class="post">
@@ -63,8 +63,8 @@
       <a href="#awkward">Why is aligning a flow so awkward?</a>
       <a href="#closeness">A different notion of closeness</a>
       <a href="#flow-maps">Why flow maps?</a>
-      <a href="#guidance">Guidance by looking ahead</a>
-      <a href="#fine-tuning">Fine-tuning by learning the control</a>
+      <a href="#guidance">Guidance by looking ahead</a><a class="sub" href="#fmrg-algorithm">The FMRG algorithm</a>
+      <a href="#fine-tuning">Fine-tuning by learning the control</a><a class="sub" href="#wtf-algorithm">The WTF algorithm</a>
       <a href="#looking-forward">Looking Forward</a>
     </details>
 
@@ -192,6 +192,17 @@
       <div class="prose">
         <p>At test time, we would like to steer the pretrained model toward higher-reward samples without changing its weights. Flow Map Reward Guidance (FMRG) approximates the control problem along a single trajectory. It uses the pretrained flow map to predict the eventual output and decide how to adjust the current state.</p>
       </div>
+      <div class="algobox algo-main" id="fmrg-algorithm">
+        <p class="algo-tag">The FMRG algorithm &middot; guidance at test time</p>
+        <p class="algo-in">Given a pretrained flow map $X_{s,t}$, a reward $r$, a guidance strength $\lambda$, a time grid $0 = t_0 < t_1 < \dots < t_K = 1$ and a stopping time $t_{\mathrm{stop}}$. Start from noise $x \sim \rho_0$.</p>
+        <ol>
+          <li><strong>Flow-map step.</strong> Advance along the pretrained dynamics, $\tilde x = X_{t_k, t_{k+1}}(x)$.</li>
+          <li><strong>Look ahead.</strong> Predict the endpoint $\hat x_1 = X_{t_{k+1}, 1}(\tilde x)$ and evaluate the reward there.</li>
+          <li><strong>Guidance step.</strong> If $t_{k+1} \le t_{\mathrm{stop}}$, compute $u = \nabla X_{t_{k+1},1}(\tilde x)^\top \nabla r(\hat x_1)$ and set $x = \tilde x + (t_{k+1} - t_k)\, \lambda\, u$. Otherwise set $x = \tilde x$.</li>
+          <li>Repeat for $k = 0, \dots, K-1$ and return $x$.</li>
+        </ol>
+        <p class="algo-note">FMRG-J uses the full signal above. FMRG-E drops the flow-map Jacobian and uses $u = \nabla r(\hat x_1)$. No training is involved, and each step costs one flow-map evaluation plus one lookahead.</p>
+      </div>
       <h3 class="sub">Predicting the endpoint</h3>
       <div class="prose">
         <p>Suppose we are at a state $x$ at time $t$. The pretrained flow map $X_{t,1}(x)$ predicts where this state ends up if generation follows the pretrained dynamics. We evaluate the reward at that endpoint and differentiate to find how changing the current state would improve the eventual reward,</p>
@@ -318,6 +329,18 @@
       <h2>Fine-tuning by learning the control</h2>
       <div class="prose">
         <p>Guidance computes a correction separately for every sample. Fine-tuning instead trains the model to approximate the optimal control, so that it generates higher-reward samples directly. The challenge is to evaluate and improve that control efficiently while the model changes.</p>
+      </div>
+      <div class="algobox algo-main" id="wtf-algorithm">
+        <p class="algo-tag">The WTF algorithm &middot; one fine-tuning step</p>
+        <p class="algo-in">Given a pretrained flow map with velocity $b_t$, a reward $r$, a reward scale $\lambda$ and a distillation weight $\beta$. The model is a flow map whose velocity $v^\theta_t = b_t + u^\theta_t$ starts at $b_t$, and $\bar u$ is a frozen copy of its control with flow map $X^{\bar u}$.</p>
+        <ol>
+          <li><strong>Sample.</strong> $x_0 \sim \rho_0$, $t \sim \mathrm{U}[0,1]$ and $\tau \sim \mathrm{U}[t,1]$.</li>
+          <li><strong>Jump with the frozen flow map.</strong> $x_t = X^{\bar u}_{0,t}(x_0)$, then $x_\tau = X^{\bar u}_{t,\tau}(x_t)$, then $x_1 = X^{\bar u}_{\tau,1}(x_\tau)$.</li>
+          <li><strong>Estimate the value.</strong> $\widehat V = \lambda\, r(x_1) - \tfrac{1-t}{2}\, \lVert \bar u_\tau(x_\tau) \rVert^2$.</li>
+          <li><strong>Form the target.</strong> $\widehat g = \nabla_{x_t} \widehat V$, by differentiating through the two jumps.</li>
+          <li><strong>Update.</strong> Take a gradient step on $\lVert v^\theta_t(x_t) - \mathrm{sg}\big(b_t(x_t) + \widehat g\big) \rVert^2 + \beta\, \mathcal{L}_{\mathrm{dist}}(\theta)$, where $\mathcal{L}_{\mathrm{dist}}$ self-distills the flow map from the velocity. Refresh $\bar u$ from the model.</li>
+        </ol>
+        <p class="algo-note">The output is the fine-tuned flow map, which samples in one step or many. The image experiments use the Euclidean variant, which drops the flow-map Jacobian from the reward term of $\widehat g$.</p>
       </div>
       <h3 class="sub">Improving the control</h3>
       <div class="prose">
