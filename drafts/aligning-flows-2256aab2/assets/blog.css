@@ -204,3 +204,10 @@ details.aside .keybox { margin: .6rem auto; }
 .tf-x { top: 82%; }
 .tf-c { top: 83.6%; }
 .tf-lam { top: 88.9%; }
+
+/* panel labels on the FMRG guidance animation */
+.embed { container-type: inline-size; }
+.fo-lab { position: absolute; left: 9%; font-family: var(--serif); font-weight: 700; font-size: 1.9cqw; line-height: 1.2; pointer-events: none; }
+.fo-lab span { font-family: var(--sans); font-weight: 500; font-size: .82em; }
+.fo-top { top: 1%; color: var(--accent); }
+.fo-bot { top: 58.5%; color: #b5494a; }
