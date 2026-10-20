@@ -296,7 +296,6 @@ details.aside .keybox { margin: .6rem auto; }
 @media (max-width: 560px) { .hier-lvl { grid-template-columns: 1fr; gap: .4rem; padding: .7rem .9rem; } }
 
 /* Looking Forward: the takeaway, and a quiet pun */
-.post .takeline { font-weight: 600; color: var(--accent); background: linear-gradient(transparent 62%, color-mix(in srgb, var(--accent) 12%, transparent) 62%); padding: 0 .1em; }
 .lf-head { position: relative; }
 .lf-pun { margin-left: .7rem; font-family: var(--serif); font-style: italic; font-weight: 400; font-size: .5em; color: var(--ink-faint); opacity: 0; transition: opacity .6s ease .35s; vertical-align: middle; }
 .lf-head:hover .lf-pun { opacity: .75; }

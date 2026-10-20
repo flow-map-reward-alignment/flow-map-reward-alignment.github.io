@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=EB+Garamond:ital,wght@0,600;0,800;1,500;1,600&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;0,8..60,800;0,8..60,900;1,8..60,400&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wtf.css?v=2">
-  <link rel="stylesheet" href="assets/blog.css?v=34">
+  <link rel="stylesheet" href="assets/blog.css?v=35">
   <script>
     window.MathJax = {
       tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
@@ -506,7 +506,11 @@
       <div class="prose takeaway">
         <p>These two papers suggest that the objective for reward alignment deserves to be reconsidered alongside the models we want to align. Measuring departure through the pretrained dynamics leads to a deterministic control problem that supports both guidance and fine-tuning. The choice of regularizer changes both the distribution we seek and the computations needed to reach it.</p>
         <p>From this perspective, flow maps emerge as a foundational primitive for efficient reward alignment. Their ability to predict future states makes it possible to evaluate and improve a generative trajectory without simulating every intermediate step. FMRG uses this capability for guidance at test time, while WTF uses it to learn an improved generator. Continual self-distillation preserves this capability as the model changes, so the fine-tuned model remains a flow map that supports both few-step generation and further alignment.</p>
-        <p>We believe this role extends beyond the methods developed here. As reward feedback becomes a larger part of training generative models, efficiently evaluating the consequences of the model's own decisions becomes increasingly important. Flow maps provide precisely this capability. <strong class="takeline">Together, these results highlight a dual role for flow maps as primitives for fast generation and efficient control.</strong> We hope they encourage further exploration of flow maps and the alignment objectives that make use of their structure.</p>
+        <p>We believe this role extends beyond the methods developed here. As reward feedback becomes a larger part of training generative models, efficiently evaluating the consequences of the model's own decisions becomes increasingly important. Flow maps provide precisely this capability.</p>
+      </div>
+      <p class="pull-q pull-q-sm">Together, these results highlight a dual role for flow maps<br>as primitives for <strong>fast generation</strong> and <strong>efficient control</strong>.</p>
+      <div class="prose takeaway">
+        <p>We hope they encourage further exploration of flow maps and the alignment objectives that make use of their structure.</p>
       </div>
     </section>
 
