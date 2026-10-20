@@ -192,17 +192,6 @@
       <div class="prose">
         <p>At test time, we would like to steer the pretrained model toward higher-reward samples without changing its weights. Flow Map Reward Guidance (FMRG) approximates the control problem along a single trajectory. It uses the pretrained flow map to predict the eventual output and decide how to adjust the current state.</p>
       </div>
-      <div class="algobox algo-main" id="fmrg-algorithm">
-        <p class="algo-tag">The FMRG algorithm &middot; guidance at test time</p>
-        <p class="algo-in">Given a pretrained flow map $X_{s,t}$, a reward $r$, a guidance strength $\lambda$, a time grid $0 = t_0 < t_1 < \dots < t_K = 1$ and a stopping time $t_{\mathrm{stop}}$. Start from noise $x \sim \rho_0$.</p>
-        <ol>
-          <li><strong>Flow-map step.</strong> Advance along the pretrained dynamics, $\tilde x = X_{t_k, t_{k+1}}(x)$.</li>
-          <li><strong>Look ahead.</strong> Predict the endpoint $\hat x_1 = X_{t_{k+1}, 1}(\tilde x)$ and evaluate the reward there.</li>
-          <li><strong>Guidance step.</strong> If $t_{k+1} \le t_{\mathrm{stop}}$, compute $u = \nabla X_{t_{k+1},1}(\tilde x)^\top \nabla r(\hat x_1)$ and set $x = \tilde x + (t_{k+1} - t_k)\, \lambda\, u$. Otherwise set $x = \tilde x$.</li>
-          <li>Repeat for $k = 0, \dots, K-1$ and return $x$.</li>
-        </ol>
-        <p class="algo-note">FMRG-J uses the full signal above. FMRG-E drops the flow-map Jacobian and uses $u = \nabla r(\hat x_1)$. No training is involved, and each step costs one flow-map evaluation plus one lookahead.</p>
-      </div>
       <h3 class="sub">Predicting the endpoint</h3>
       <div class="prose">
         <p>Suppose we are at a state $x$ at time $t$. The pretrained flow map $X_{t,1}(x)$ predicts where this state ends up if generation follows the pretrained dynamics. We evaluate the reward at that endpoint and differentiate to find how changing the current state would improve the eventual reward,</p>
@@ -284,6 +273,18 @@
         </div>
         <figcaption>Style guidance across the hierarchy. The flow-map variants (FMRG-J, FMRG-E) follow the style reference, while their denoiser-based counterparts miss the style or produce artifacts. DPS and FlowChef replace the flow-map endpoint with a single Euler step, and FlowDPS falls in the same family.</figcaption>
       </figure>
+      <h3 class="sub">Putting it together</h3>
+      <div class="algobox algo-main" id="fmrg-algorithm">
+        <p class="algo-tag">The FMRG algorithm &middot; guidance at test time</p>
+        <p class="algo-in">Given a pretrained flow map $X_{s,t}$, a reward $r$, a guidance strength $\lambda$, a time grid $0 = t_0 < t_1 < \dots < t_K = 1$ and a stopping time $t_{\mathrm{stop}}$. Start from noise $x \sim \rho_0$.</p>
+        <ol>
+          <li><strong>Flow-map step.</strong> Advance along the pretrained dynamics, $\tilde x = X_{t_k, t_{k+1}}(x)$.</li>
+          <li><strong>Look ahead.</strong> Predict the endpoint $\hat x_1 = X_{t_{k+1}, 1}(\tilde x)$ and evaluate the reward there.</li>
+          <li><strong>Guidance step.</strong> If $t_{k+1} \le t_{\mathrm{stop}}$, compute $u = \nabla X_{t_{k+1},1}(\tilde x)^\top \nabla r(\hat x_1)$ and set $x = \tilde x + (t_{k+1} - t_k)\, \lambda\, u$. Otherwise set $x = \tilde x$.</li>
+          <li>Repeat for $k = 0, \dots, K-1$ and return $x$.</li>
+        </ol>
+        <p class="algo-note">FMRG-J uses the full signal above. FMRG-E drops the flow-map Jacobian and uses $u = \nabla r(\hat x_1)$. No training is involved, and each step costs one flow-map evaluation plus one lookahead.</p>
+      </div>
       <h3 class="sub">Results</h3>
       <div class="prose">
         <p>An accurate lookahead allows FMRG to guide generation with few network function evaluations (NFEs), the number of model calls per sample. We evaluate compositional accuracy on GenEval, whose object detectors are independent of the reward used for guidance.</p>
@@ -329,18 +330,6 @@
       <h2>Fine-tuning by learning the control</h2>
       <div class="prose">
         <p>Guidance computes a correction separately for every sample. Fine-tuning instead trains the model to approximate the optimal control, so that it generates higher-reward samples directly. The challenge is to evaluate and improve that control efficiently while the model changes.</p>
-      </div>
-      <div class="algobox algo-main" id="wtf-algorithm">
-        <p class="algo-tag">The WTF algorithm &middot; one fine-tuning step</p>
-        <p class="algo-in">Given a pretrained flow map with velocity $b_t$, a reward $r$, a reward scale $\lambda$ and a distillation weight $\beta$. The model is a flow map whose velocity $v^\theta_t = b_t + u^\theta_t$ starts at $b_t$, and $\bar u$ is a frozen copy of its control with flow map $X^{\bar u}$.</p>
-        <ol>
-          <li><strong>Sample.</strong> $x_0 \sim \rho_0$, $t \sim \mathrm{U}[0,1]$ and $\tau \sim \mathrm{U}[t,1]$.</li>
-          <li><strong>Jump with the frozen flow map.</strong> $x_t = X^{\bar u}_{0,t}(x_0)$, then $x_\tau = X^{\bar u}_{t,\tau}(x_t)$, then $x_1 = X^{\bar u}_{\tau,1}(x_\tau)$.</li>
-          <li><strong>Estimate the value.</strong> $\widehat V = \lambda\, r(x_1) - \tfrac{1-t}{2}\, \lVert \bar u_\tau(x_\tau) \rVert^2$.</li>
-          <li><strong>Form the target.</strong> $\widehat g = \nabla_{x_t} \widehat V$, by differentiating through the two jumps.</li>
-          <li><strong>Update.</strong> Take a gradient step on $\lVert v^\theta_t(x_t) - \mathrm{sg}\big(b_t(x_t) + \widehat g\big) \rVert^2 + \beta\, \mathcal{L}_{\mathrm{dist}}(\theta)$, where $\mathcal{L}_{\mathrm{dist}}$ self-distills the flow map from the velocity. Refresh $\bar u$ from the model.</li>
-        </ol>
-        <p class="algo-note">The output is the fine-tuned flow map, which samples in one step or many. The image experiments use the Euclidean variant, which drops the flow-map Jacobian from the reward term of $\widehat g$.</p>
       </div>
       <h3 class="sub">Improving the control</h3>
       <div class="prose">
@@ -393,6 +382,19 @@
         <p>Wasserstein-Tilted Flow Maps (WTF) couples these two updates. It fits the control to the estimated value gradient and continually self-distills the flow map to follow the updated dynamics. This keeps the map available for evaluating and improving the control throughout training. Self-distillation is therefore part of the alignment procedure itself.</p>
         <p>Training the control and flow map together also avoids a failure of directly optimizing the endpoint map. Backpropagating the terminal reward through that map can improve its outputs without teaching the velocity field the corresponding dynamics.</p>
         <p>In the idealized setting, every fixed point of the WTF loss gives the optimal control together with its flow map. The resulting model supports generation from one step to many. We call this simulation-free reinforcement learning because the learned flow map supplies the future states needed for training without simulating the intervening trajectory.</p>
+      </div>
+      <h3 class="sub">Putting it together</h3>
+      <div class="algobox algo-main" id="wtf-algorithm">
+        <p class="algo-tag">The WTF algorithm &middot; one fine-tuning step</p>
+        <p class="algo-in">Given a pretrained flow map with velocity $b_t$, a reward $r$, a reward scale $\lambda$ and a distillation weight $\beta$. The model is a flow map whose velocity $v^\theta_t = b_t + u^\theta_t$ starts at $b_t$, and $\bar u$ is a frozen copy of its control with flow map $X^{\bar u}$.</p>
+        <ol>
+          <li><strong>Sample.</strong> $x_0 \sim \rho_0$, $t \sim \mathrm{U}[0,1]$ and $\tau \sim \mathrm{U}[t,1]$.</li>
+          <li><strong>Jump with the frozen flow map.</strong> $x_t = X^{\bar u}_{0,t}(x_0)$, then $x_\tau = X^{\bar u}_{t,\tau}(x_t)$, then $x_1 = X^{\bar u}_{\tau,1}(x_\tau)$.</li>
+          <li><strong>Estimate the value.</strong> $\widehat V = \lambda\, r(x_1) - \tfrac{1-t}{2}\, \lVert \bar u_\tau(x_\tau) \rVert^2$.</li>
+          <li><strong>Form the target.</strong> $\widehat g = \nabla_{x_t} \widehat V$, by differentiating through the two jumps.</li>
+          <li><strong>Update.</strong> Take a gradient step on $\lVert v^\theta_t(x_t) - \mathrm{sg}\big(b_t(x_t) + \widehat g\big) \rVert^2 + \beta\, \mathcal{L}_{\mathrm{dist}}(\theta)$, where $\mathcal{L}_{\mathrm{dist}}$ self-distills the flow map from the velocity. Refresh $\bar u$ from the model.</li>
+        </ol>
+        <p class="algo-note">The output is the fine-tuned flow map, which samples in one step or many. The image experiments use the Euclidean variant, which drops the flow-map Jacobian from the reward term of $\widehat g$.</p>
       </div>
       <h3 class="sub">Results</h3>
       <div class="prose">
