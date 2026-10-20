@@ -280,18 +280,17 @@ details.aside .keybox { margin: .6rem auto; }
 .pi-sqnote { font-size: 14px; }
 .pi-axlab { font-size: 21px; }
 
-/* hierarchy of approximations, native */
-.hierfig { max-width: 820px; }
-.hier { display: flex; flex-direction: column; align-items: stretch; }
-.hier-lvl { display: grid; grid-template-columns: 9.5rem 1fr; align-items: center; gap: 1rem; padding: .85rem 1.2rem; border: 1px solid var(--line-strong); border-left-width: 3px; border-radius: 10px; background: #fff; }
-.hier-lvl.exact { border-left-color: #6b6f8f; }
-.hier-lvl.fmrg { border-color: color-mix(in srgb, var(--accent) 40%, transparent); border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 4%, #fff); }
-.hier-lvl.dps { border-left-color: #b5494a; }
-.hier-tag { font-family: var(--serif); font-weight: 700; font-size: 1.08rem; line-height: 1.15; }
-.hier-tag span { display: block; font-family: var(--sans); font-weight: 500; font-size: .78rem; color: var(--ink-faint); margin-top: .15rem; }
-.exact .hier-tag { color: #6b6f8f; } .fmrg .hier-tag { color: var(--accent); } .dps .hier-tag { color: #b5494a; }
-.hier-eq { overflow-x: auto; overflow-y: hidden; font-size: .98rem; }
+/* hierarchy of approximations, as on the FMRG project page */
+.hierfig { max-width: 720px; }
+.hier { display: flex; flex-direction: column; gap: .55rem; }
+.hier-lvl { display: grid; grid-template-columns: 9rem 1fr; gap: 1rem; align-items: center; padding: .75rem 1.1rem; border-radius: 8px; border: 1px solid var(--line); border-left: 4px solid #b9b9c2; background: #fff; }
+.hier-lvl.fmrg { background: color-mix(in srgb, var(--accent) 5%, #fff); border-left-color: var(--accent); }
+.hier-tag { font-family: var(--serif); font-weight: 700; font-size: 1.05rem; line-height: 1.15; color: #3a3a44; }
+.hier-tag span { display: block; font-weight: 400; font-style: italic; font-size: .82rem; color: var(--ink-faint); margin-top: .1rem; }
+.fmrg .hier-tag { color: var(--accent); }
+.hier-eq { font-size: 1.05rem; line-height: 1.25; min-width: 0; overflow-x: auto; overflow-y: hidden; }
 .hier-eq mjx-container { margin: 0 !important; }
-.hier-arrow { align-self: flex-start; margin: .15rem 0 .15rem 4.4rem; display: flex; align-items: center; gap: .6rem; font: 500 .86rem var(--sans); color: var(--ink-soft); }
-.hier-ar { font-size: 1.35rem; line-height: 1; color: var(--ink-faint); }
-@media (max-width: 640px) { .hier-lvl { grid-template-columns: 1fr; gap: .4rem; } .hier-arrow { margin-left: 1.2rem; } }
+.hier-arrow { display: flex; align-items: center; justify-content: center; gap: .6rem; font-family: var(--serif); font-style: italic; font-weight: 500; font-size: .98rem; color: var(--ink); padding: .1rem 0; }
+.hier-why { font-style: normal; color: var(--ink-soft); }
+.hier-ar { font-size: 1.5rem; line-height: 1; font-style: normal; font-weight: 400; color: var(--ink-faint); }
+@media (max-width: 560px) { .hier-lvl { grid-template-columns: 1fr; gap: .4rem; padding: .7rem .9rem; } }
