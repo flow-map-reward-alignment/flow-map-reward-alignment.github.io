@@ -231,3 +231,51 @@ details.aside .keybox { margin: .6rem auto; }
 .algo-main li strong { color: var(--ink); }
 .toc a.sub, .toc-inline a.sub { padding-left: 1.5rem; font-size: .8rem; }
 .toc-inline a.sub { padding-left: 1.2rem; font-size: .88rem; }
+
+/* policy iteration animation */
+.pifig { --pi-cost: #c08a2e; --pi-rew: rgb(80, 130, 80); }
+.pi-head { display: flex; align-items: center; justify-content: space-between; gap: .8rem; flex-wrap: wrap; margin-bottom: .6rem; }
+.pi-head .cv-steps { margin: 0; justify-content: flex-start; }
+.pi-iter { font: 500 .85rem var(--sans); color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+.pi-iter b { color: var(--accent); font-weight: 700; }
+.pi-panels { display: grid; grid-template-columns: 2.05fr 1fr; gap: 1.6rem; align-items: center; }
+.pi-svg { width: 100%; height: auto; display: block; overflow: visible; }
+.pi-eq { text-align: center; margin: .3rem auto 0; color: var(--ink-faint); opacity: .45; transition: opacity .35s ease, color .35s ease; }
+.pi-eq.on { opacity: 1; color: var(--ink); }
+.pi-axis { stroke: var(--ink-faint); stroke-width: 1.2; }
+.pi-axis.dark { stroke: var(--ink-soft); }
+.pi-tick { font: 500 11.5px var(--sans); fill: var(--ink-faint); }
+.pi-note { font: 500 11.5px var(--sans); fill: var(--ink-faint); }
+.pi-base { fill: none; stroke: #b9b5c6; stroke-width: 2; stroke-dasharray: 6 6; }
+.pi-traj { fill: none; stroke: var(--accent); stroke-width: 3.2; stroke-linecap: round; }
+.pi-ghost { fill: none; stroke: var(--accent); stroke-width: 2; stroke-dasharray: 3 5; stroke-linecap: round; }
+.pi-ctrl { stroke: var(--pi-cost); stroke-width: 1.6; opacity: .5; }
+.pi-cost { stroke: var(--pi-cost); stroke-width: 2.6; }
+.pi-jump { fill: none; stroke: var(--accent); stroke-width: 2; stroke-dasharray: 0; opacity: .9; }
+.pi-grad { stroke: var(--accent); stroke-width: 3; }
+.pi-rew-ring { fill: none; stroke: var(--pi-rew); stroke-width: 1.2; }
+.pi-dot { fill: var(--ink); }
+.pi-dot-base { fill: #b9b5c6; }
+.pi-dot-acc { fill: var(--accent); stroke: #fff; stroke-width: 1.5; }
+.pi-dot-cost { fill: var(--pi-cost); stroke: #fff; stroke-width: 1.5; }
+.pi-fill-acc { fill: var(--accent); }
+.pi-fill-cost { fill: var(--pi-cost); }
+.pi-math { font-family: var(--serif); font-style: italic; font-size: 17px; fill: var(--ink); }
+.pi-cost-txt { fill: var(--pi-cost); }
+.pi-rew-txt { fill: var(--pi-rew); }
+.pi-grad-txt, .pi-acc-txt { fill: var(--accent); }
+.pi-axlab { font-size: 18px; }
+.pi-sq { fill: none; stroke: var(--line-strong); stroke-width: 1.2; }
+.pi-tri { fill: color-mix(in srgb, var(--accent) 4%, #fff); }
+.pi-band { fill: color-mix(in srgb, var(--accent) 18%, transparent); }
+.pi-sweep { stroke: var(--accent); stroke-width: 1.4; stroke-dasharray: 4 4; }
+.pi-diag { stroke: var(--accent); stroke-width: 3.4; stroke-linecap: round; }
+.pi-diag-glow { stroke: var(--accent); stroke-width: 12; stroke-linecap: round; opacity: 0; filter: blur(3px); stroke-opacity: .35; }
+.pi-out { stroke: var(--accent); stroke-width: 1.8; }
+.pi-sqnote { font: 500 12.5px var(--sans); fill: var(--ink-soft); }
+.pi-sqnote.acc { fill: var(--accent); font-weight: 600; }
+@media (max-width: 760px) { .pi-panels { grid-template-columns: 1fr; } .pi-right { max-width: 320px; margin: 0 auto; } }
+.pi-math { font-size: 21px; }
+.pi-note, .pi-tick { font-size: 13px; }
+.pi-sqnote { font-size: 14px; }
+.pi-axlab { font-size: 21px; }

@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=EB+Garamond:ital,wght@0,600;0,800;1,500;1,600&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;0,8..60,800;0,8..60,900;1,8..60,400&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wtf.css?v=2">
-  <link rel="stylesheet" href="assets/blog.css?v=29">
+  <link rel="stylesheet" href="assets/blog.css?v=31">
   <script>
     window.MathJax = {
       tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
@@ -389,6 +389,22 @@
         <p>Training the control and flow map together also avoids a failure of directly optimizing the endpoint map. Backpropagating the terminal reward through that map can improve its outputs without teaching the velocity field the corresponding dynamics.</p>
         <p>In the idealized setting, every fixed point of the WTF loss gives the optimal control together with its flow map. The resulting model supports generation from one step to many. We call this simulation-free reinforcement learning because the learned flow map supplies the future states needed for training without simulating the intervening trajectory.</p>
       </div>
+      <figure class="fig fig-wide pifig" id="pifig">
+        <div class="pi-head">
+          <ol class="cv-steps" aria-hidden="true">
+            <li class="cv-step"><b>1</b> Evaluate the reference control</li>
+            <li class="cv-step"><b>2</b> Improve the control</li>
+            <li class="cv-step"><b>3</b> Self-distill the flow map</li>
+          </ol>
+          <span class="pi-iter">iteration <b>1</b></span>
+        </div>
+        <div class="pi-panels" role="img" aria-label="Policy iteration in WTF. Left: two flow-map jumps from x_t evaluate the control cost at an intermediate state and the reward at the endpoint, the value-gradient arrow points toward higher value, and the trajectory bends toward the reward over three iterations. Right: in the square of time pairs, the diagonal velocity is fitted first and the flow map is then self-distilled outward from the diagonal.">
+          <div class="pi-left"></div>
+          <div class="pi-right"></div>
+        </div>
+        <div class="pi-eq">$\widehat V = \lambda\, r(x_1) - \tfrac{1-t}{2}\, \lVert \bar u_\tau(x_\tau) \rVert^2$</div>
+        <figcaption>Policy iteration in WTF, schematic. Each iteration evaluates the frozen reference control with two flow-map jumps, improves the control by fitting the velocity to the value gradient, and self-distills the flow map outward from the diagonal so that it follows the new dynamics. Across iterations the endpoint moves toward high reward, and the control grows only as much as the reward justifies.</figcaption>
+      </figure>
       <h3 class="sub">Putting it together</h3>
       <div class="algobox algo-main" id="wtf-algorithm">
         <p class="algo-tag">The WTF algorithm &middot; one fine-tuning step</p>
@@ -495,6 +511,7 @@
   <script src="assets/convert-anim.js?v=5"></script>
   <script src="assets/computefig.js"></script>
   <script src="assets/genevalfig.js?v=6"></script>
+  <script src="assets/pifig.js?v=5"></script>
   <script src="assets/valuefig.js?v=4"></script>
 <script>
 // highlight the current section in the contents sidebar
