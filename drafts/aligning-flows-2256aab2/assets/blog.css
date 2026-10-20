@@ -196,3 +196,11 @@ details.aside .keybox { margin: .6rem auto; }
 .cv-step { white-space: nowrap; }
 .cv-head .cv-steps { flex: 0 0 auto; }
 @media (max-width: 900px) { .cv-head .cv-steps { flex: 1 1 100%; } .cv-step { white-space: normal; } }
+
+/* taller tilt figure (y scale 1.9, aspect as on the WTF page) */
+.tiltfig { aspect-ratio: 13.70 / 3.23; }
+.tf-t { bottom: 84%; }
+.tf-r { top: 21%; }
+.tf-x { top: 82%; }
+.tf-c { top: 83.6%; }
+.tf-lam { top: 88.9%; }

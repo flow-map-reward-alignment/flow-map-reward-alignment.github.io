@@ -21,7 +21,7 @@
   const tiltC = lam => { const u = Math.min(300, Math.max(0, lam * 100)), i = Math.floor(u), f = u - i; return i >= 300 ? CT[300] : CT[i] * (1 - f) + CT[i + 1] * f; };
 
   // TikZ coordinates in cm: frame bbox (-3.30,-0.55)-(10.40,2.25); panels shifted by 0 and 7, xscale 2.
-  const X0 = -3.30, W = 13.70, Y1 = 1.60, H = 2.15;
+  const X0 = -3.30, W = 13.70, Y1 = 2.65, H = 3.23, YS = 1.9;   // YS stretches the plots vertically
   const ns = 'http://www.w3.org/2000/svg';
   const svg = document.createElementNS(ns, 'svg');
   svg.setAttribute('viewBox', `${X0} ${-Y1} ${W} ${H}`);
@@ -34,7 +34,7 @@
   const el = (tag, attrs) => { const e = document.createElementNS(ns, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); svg.appendChild(e); return e; };
   const pathOf = (f, sx, ys, n) => {
     let d = '';
-    for (let i = 0; i <= n; i++) { const x = -1.5 + 3 * i / n; d += (i ? 'L' : 'M') + (sx + 2 * x).toFixed(4) + ',' + (-ys * f(x)).toFixed(4); }
+    for (let i = 0; i <= n; i++) { const x = -1.5 + 3 * i / n; d += (i ? 'L' : 'M') + (sx + 2 * x).toFixed(4) + ',' + (-YS * ys * f(x)).toFixed(4); }
     return d;
   };
   const fillOf = (f, sx, ys, n) => pathOf(f, sx, ys, n) + `L${(sx + 3).toFixed(3)},0L${(sx - 3).toFixed(3)},0Z`;
@@ -63,10 +63,10 @@
         let show = false, x1 = 0, y1 = 0, x2 = 0, y2 = 0;
         if (p.idx === 0) {
           const m = centres(lam)[i][1];
-          if (Math.abs(m - m0) >= 1e-3) { show = true; x1 = p.sx + 2 * m0; x2 = p.sx + 2 * m; y1 = y2 = -2 * 0.34; }
+          if (Math.abs(m - m0) >= 1e-3) { show = true; x1 = p.sx + 2 * m0; x2 = p.sx + 2 * m; y1 = y2 = -YS * 2 * 0.34; }
         } else {
           const p0 = basep(m0), t0 = C * p0 * Math.exp(lam * reward(m0));
-          if (Math.abs(t0 - p0) >= 0.004) { show = true; x1 = x2 = p.sx + 2 * m0; y1 = -2 * p0; y2 = -2 * t0; }
+          if (Math.abs(t0 - p0) >= 0.004) { show = true; x1 = x2 = p.sx + 2 * m0; y1 = -YS * 2 * p0; y2 = -YS * 2 * t0; }
         }
         a.setAttribute('visibility', show ? 'visible' : 'hidden');
         if (show) { a.setAttribute('x1', x1); a.setAttribute('y1', y1); a.setAttribute('x2', x2); a.setAttribute('y2', y2); }
