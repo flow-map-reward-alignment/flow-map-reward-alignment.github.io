@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=EB+Garamond:ital,wght@0,600;0,800;1,500;1,600&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;0,8..60,800;0,8..60,900;1,8..60,400&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wtf.css?v=2">
-  <link rel="stylesheet" href="assets/blog.css?v=31">
+  <link rel="stylesheet" href="assets/blog.css?v=32">
   <script>
     window.MathJax = {
       tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
@@ -228,8 +228,23 @@
         <p>A denoiser and a flow map both predict a clean sample from a noisy state, but they predict different things. The denoiser predicts the conditional mean over all clean samples consistent with the current state. The flow map predicts the destination of this particular deterministic trajectory.</p>
         <p>This distinction connects FMRG to existing guidance methods. In the linear-interpolant setting, the denoiser's conditional mean coincides with a single Euler step of the flow toward the endpoint. Substituting this approximation for the flow map in the guidance signal recovers diffusion posterior sampling (DPS). We can therefore view DPS and FMRG as successive approximations to the optimal control. DPS uses an Euler approximation to the pretrained flow map, while FMRG uses the pretrained flow map itself.</p>
       </div>
-      <figure class="fig fig-narrow" id="hierarchy">
-        <img src="assets/fmrg_hierarchy.svg" width="640" height="358" alt="Hierarchy of approximations: exact-optimal control uses the controlled flow map; FMRG uses the uncontrolled flow map; DPS substitutes the denoiser estimate">
+      <figure class="fig hierfig" id="hierarchy">
+        <div class="hier">
+          <div class="hier-lvl exact">
+            <div class="hier-tag">Exact optimal<span>intractable</span></div>
+            <div class="hier-eq">$\displaystyle u_t^* = \lambda\, \nabla {\color{#6b6f8f}{\boldsymbol{X^{u^*}_{t,1}(x_t^*)}}}^{\!\top} \nabla r\big({\color{#6b6f8f}{\boldsymbol{X^{u^*}_{t,1}(x_t^*)}}}\big)$</div>
+          </div>
+          <div class="hier-arrow"><span class="hier-ar">&darr;</span>uncontrolled flow map</div>
+          <div class="hier-lvl fmrg">
+            <div class="hier-tag">FMRG<span>ours</span></div>
+            <div class="hier-eq">$\displaystyle u_t(x) = \lambda\, \nabla {\color{#5b3fb0}{\boldsymbol{X_{t,1}(x)}}}^{\!\top} \nabla r\big({\color{#5b3fb0}{\boldsymbol{X_{t,1}(x)}}}\big)$</div>
+          </div>
+          <div class="hier-arrow"><span class="hier-ar">&darr;</span>substitute the denoiser estimate</div>
+          <div class="hier-lvl dps">
+            <div class="hier-tag">DPS<span>prior work</span></div>
+            <div class="hier-eq">$\displaystyle u_t^{\mathrm{DPS}}(x) = \lambda\, \nabla_x r\big({\color{#b5494a}{\boldsymbol{\hat x_1(x)}}}\big), \quad \hat x_1 = \mathbb{E}[x_1 \mid x_t = x]$</div>
+          </div>
+        </div>
         <figcaption>A hierarchy of approximations. The exact optimal control requires the controlled flow map $X^{u^*}_{t,1}$. FMRG uses the pretrained flow map $X_{t,1}$, and DPS further approximates $X_{t,1}$ with a single Euler step.</figcaption>
       </figure>
       <div class="prose">
