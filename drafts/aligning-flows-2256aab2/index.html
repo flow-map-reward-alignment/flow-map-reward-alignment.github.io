@@ -227,6 +227,12 @@
       <div class="prose">
         <p>A denoiser and a flow map both predict a clean sample from a noisy state, but they predict different things. The denoiser predicts the conditional mean over all clean samples consistent with the current state. The flow map predicts the destination of this particular deterministic trajectory.</p>
         <p>This distinction connects FMRG to existing guidance methods. In the linear-interpolant setting, the denoiser's conditional mean coincides with a single Euler step of the flow toward the endpoint. Substituting this approximation for the flow map in the guidance signal recovers diffusion posterior sampling (DPS). We can therefore view DPS and FMRG as successive approximations to the optimal control. DPS uses an Euler approximation to the pretrained flow map, while FMRG uses the pretrained flow map itself.</p>
+      </div>
+      <figure class="fig fig-narrow" id="hierarchy">
+        <img src="assets/fmrg_hierarchy.svg" width="640" height="358" alt="Hierarchy of approximations: exact-optimal control uses the controlled flow map; FMRG uses the uncontrolled flow map; DPS substitutes the denoiser estimate">
+        <figcaption>A hierarchy of approximations. The exact optimal control requires the controlled flow map $X^{u^*}_{t,1}$. FMRG uses the pretrained flow map $X_{t,1}$, and DPS further approximates $X_{t,1}$ with a single Euler step.</figcaption>
+      </figure>
+      <div class="prose">
         <p>FMRG comes in two variants. FMRG-J differentiates through the flow map as in the equation above, and FMRG-E uses the reward gradient at the predicted endpoint directly, omitting the flow-map Jacobian to save memory. Both keep the flow-map prediction of the endpoint. In style guidance, both flow-map variants transfer the reference style, while their denoiser-based counterparts miss it or add artifacts.</p>
       </div>
       <figure class="fig fig-wide srow">
