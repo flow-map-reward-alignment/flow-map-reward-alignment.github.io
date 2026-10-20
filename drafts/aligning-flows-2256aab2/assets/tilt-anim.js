@@ -21,7 +21,7 @@
   const tiltC = lam => { const u = Math.min(300, Math.max(0, lam * 100)), i = Math.floor(u), f = u - i; return i >= 300 ? CT[300] : CT[i] * (1 - f) + CT[i + 1] * f; };
 
   // TikZ coordinates in cm: frame bbox (-3.30,-0.55)-(10.40,2.25); panels shifted by 0 and 7, xscale 2.
-  const X0 = -3.30, W = 13.70, Y1 = 2.25, H = 2.80;
+  const X0 = -3.30, W = 13.70, Y1 = 1.60, H = 2.15;
   const ns = 'http://www.w3.org/2000/svg';
   const svg = document.createElementNS(ns, 'svg');
   svg.setAttribute('viewBox', `${X0} ${-Y1} ${W} ${H}`);
@@ -39,7 +39,7 @@
   };
   const fillOf = (f, sx, ys, n) => pathOf(f, sx, ys, n) + `L${(sx + 3).toFixed(3)},0L${(sx - 3).toFixed(3)},0Z`;
 
-  const panels = [0, 7].map((sx, idx) => {
+  const panels = [7, 0].map((sx, idx) => {   // Wasserstein tilt on the right, as in the objective boxes
     el('path', { d: fillOf(reward, sx, 1.4, 160), fill: 'rgb(80,130,80)', 'fill-opacity': 0.12 });
     el('path', { d: pathOf(reward, sx, 1.4, 160), fill: 'none', stroke: 'rgb(80,130,80)', 'stroke-width': 0.028 });
     el('path', { d: fillOf(basep, sx, 2, 220), fill: 'rgb(232,228,245)', 'fill-opacity': 0.85 });

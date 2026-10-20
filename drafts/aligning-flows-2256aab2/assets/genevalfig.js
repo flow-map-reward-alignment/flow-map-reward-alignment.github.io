@@ -1,5 +1,5 @@
 /* GenEval accuracy against NFE (FMRG Figure 13), drawn in the page's chart style.
-   Points were read off the paper's figure (arxiv/figures/pareto_lin.png) by marker detection with
+   Table values are used where the paper reports them (FMRG-J at 20 and 100, FMRG-E at 100, Best-of-N at 128); the other points were read off the paper's figure (arxiv/figures/pareto_lin.png) by marker detection with
    tick-calibrated axes; they agree with the paper's table to within 0.001 (FMRG-J 0.800 at 100,
    FMRG-E 0.766 at 100, Best-of-N 0.758 at 128). Reference lines use the table values. */
 (function () {
@@ -14,11 +14,11 @@
   };
   const S = [
     { key: 'j', name: 'FMRG-J (ours)', color: 'var(--accent)', ours: true,
-      pts: [[6, .695], [11, .730], [21, .770], [29, .781], [41, .786], [61, .789], [81, .797], [100, .800]] },
+      pts: [[6, .695], [11, .730], [20, .770], [29, .781], [41, .786], [61, .789], [81, .797], [100, .800]] },
     { key: 'e', name: 'FMRG-E (ours)', color: '#9b88d8', ours: true,
-      pts: [[5, .682], [9, .722], [18, .729], [30, .744], [59, .760], [99, .766]] },
+      pts: [[5, .682], [9, .722], [18, .729], [30, .744], [59, .760], [100, .766]] },
     { key: 'bon', name: 'Best-of-N', color: '#8f8c99',
-      pts: [[4, .649], [8, .693], [16, .716], [32, .740], [64, .747], [128, .759]] },
+      pts: [[4, .649], [8, .693], [16, .716], [32, .740], [64, .747], [128, .758]] },
     { key: 'reno', name: 'ReNO', color: '#c9a46a',
       pts: [[9, .677], [18, .698], [33, .713], [58, .717], [108, .718]] },
   ];
@@ -47,7 +47,8 @@
     el('text', { x: W - R + 8, y: Y(y) + 4, class: 'gv-ref-text', style: `fill:${color}` }, svg).textContent = label;
   };
   ref(.662, 'dot', 'FLUX.1-dev, 50 NFE', 'var(--ink-faint)');
-  ref(.771, 'dash', 'Trajectory tilting, 1400 NFE', 'var(--c-kl)');
+  ref(.771, 'dash', 'Trajectory tilting', 'var(--c-kl)');
+  el('text', { x: W - R + 8, y: Y(.771) + 19, class: 'gv-ref-text', style: 'fill:var(--c-kl)' }, svg).textContent = '1,400 NFE, off scale';
 
   // series, drawn back to front
   for (const s of S.slice().reverse()) {
@@ -66,8 +67,8 @@
   // the 70x span: where FMRG-J reaches the tilting accuracy, out to the right edge (1400 NFE is off the axis)
   const sy = Y(.771) - 8;
   const sg = el('g', { class: 'gv-span' }, svg);
-  el('line', { x1: X(21), x2: W - R - 4, y1: sy, y2: sy, class: 'cf-span-line', style: 'stroke:var(--accent)' }, sg);
-  el('line', { x1: X(21), x2: X(21), y1: sy - 6, y2: sy + 6, class: 'cf-span-end', style: 'stroke:var(--accent)' }, sg);
+  el('line', { x1: X(20), x2: W - R - 4, y1: sy, y2: sy, class: 'cf-span-line', style: 'stroke:var(--accent)' }, sg);
+  el('line', { x1: X(20), x2: X(20), y1: sy - 6, y2: sy + 6, class: 'cf-span-end', style: 'stroke:var(--accent)' }, sg);
   el('path', { d: `M${W - R - 4},${sy - 5} l7,5 l-7,5`, class: 'gv-arrow', style: 'stroke:var(--accent)' }, sg);
   const t = el('text', { x: X(77), y: sy - 6, class: 'cf-span-text', 'text-anchor': 'middle' }, sg);
   const n = el('tspan', { class: 'cf-span-num' }, t); n.textContent = '70×';

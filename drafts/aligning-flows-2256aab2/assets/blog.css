@@ -164,3 +164,35 @@ details.aside .keybox { margin: .6rem auto; }
 .obj-row { margin: .45rem 0 0; text-align: left; font-size: .95rem; line-height: 1.55; color: var(--ink-soft); }
 .obj-row span { font-weight: 600; color: var(--ink); }
 @media (max-width: 760px) { .objcmp { grid-template-columns: 1fr; } }
+
+/* two-row KL vs WTF conversion figure */
+.cv-row + .cv-row { margin-top: 1.2rem; }
+.cv-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .6rem; margin-bottom: .4rem; }
+.cv-head .cv-steps { margin: 0; }
+.cv-name { font-family: var(--serif); font-weight: 600; font-size: 1rem; color: var(--ink); min-width: 10.5rem; text-align: right; }
+.cv-name.ours { color: var(--accent); }
+.convertfig { aspect-ratio: 1000 / 300; }
+.cv-rho0 { top: 8%; } .cv-rho1 { top: 8%; } .cv-r { top: 20%; }
+.vf-cost { font: 600 11.5px var(--sans); fill: var(--accent); }
+/* inline contents where the sidebar is hidden */
+.toc-inline { max-width: 760px; margin: 1.4rem auto .4rem; border: 1px solid var(--line); border-radius: 10px; padding: .2rem 1.1rem; }
+.toc-inline summary { cursor: pointer; padding: .6rem 0; font-weight: 600; color: var(--ink-soft); }
+.toc-inline a { display: block; padding: .28rem 0 .28rem .2rem; color: var(--ink-soft); text-decoration: none; font-size: .95rem; }
+.toc-inline a:hover { color: var(--accent); }
+@media (min-width: 1400px) { .toc-inline { display: none; } }
+@media (max-width: 760px) { .cv-name { min-width: 0; text-align: center; width: 100%; } }
+
+.tiltfig { aspect-ratio: 13.70 / 2.15; }
+.tf-t { bottom: 77.7%; }
+.tf-r { top: 27%; }
+.tf-x { top: 74.4%; }
+.tf-c { top: 76.7%; }
+.tf-lam { top: 84.7%; }
+.cv-head { justify-content: flex-start; padding-left: 1rem; }
+.cv-name { min-width: 11rem; text-align: left; }
+.cv-head { flex-wrap: nowrap; }
+.cv-head .cv-steps { justify-content: flex-start; flex-wrap: nowrap; flex: 0 1 auto; }
+@media (max-width: 900px) { .cv-head, .cv-head .cv-steps { flex-wrap: wrap; } }
+.cv-step { white-space: nowrap; }
+.cv-head .cv-steps { flex: 0 0 auto; }
+@media (max-width: 900px) { .cv-head .cv-steps { flex: 1 1 100%; } .cv-step { white-space: normal; } }

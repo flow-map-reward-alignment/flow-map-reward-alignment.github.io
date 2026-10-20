@@ -129,18 +129,22 @@
     label(svg, (pt.x + 290) / 2 + 4, Math.max(106, pt.y) + 44, 'X', 'τ,1', 'ours');
     const r = reward(svg, X1[0], X1[1], 'x̄₁');
     const dot = el('circle', { r: 6, class: 'vf-pulse ours' }, svg);
+    const cost = el('text', { x: pt.x, y: pt.y - 30, class: 'vf-cost', 'text-anchor': 'middle' }, svg);
+    cost.textContent = 'control cost';
     return (f) => {
-      const a = seg(f, 0.0, 0.07), b = seg(f, 0.07, 0.14);
+      // jump to the intermediate state, pause there to read the control cost, then jump to the endpoint
+      const a = seg(f, 0.0, 0.07), b = seg(f, 0.22, 0.29);
       j1.style.strokeDashoffset = l1 * (1 - a); j2.style.strokeDashoffset = l2 * (1 - b);
-      const p = f < 0.07 ? j1.getPointAtLength(l1 * a) : j2.getPointAtLength(l2 * b);
+      const p = f < 0.22 ? j1.getPointAtLength(l1 * a) : j2.getPointAtLength(l2 * b);
       dot.setAttribute('cx', p.x); dot.setAttribute('cy', p.y);
-      dot.style.opacity = f < 0.155 ? 1 : 0;
-      r.textContent = f >= 0.14 ? 'r(x̄₁)' : '';
+      dot.style.opacity = f < 0.305 ? 1 : 0;
+      cost.style.opacity = seg(f, 0.08, 0.12);
+      r.textContent = f >= 0.29 ? 'r(x̄₁)' : '';
       const k = seg(f, 0.58, 0.64);
       c.mask.style.strokeDasharray = `${c.back.dataset.len} ${c.back.dataset.len}`;
       c.mask.style.strokeDashoffset = -c.back.dataset.len * k;
       c.backLabel.style.opacity = k; c.back.setAttribute('marker-end', k > 0.97 ? c.back.dataset.head : '');
-      return f < 0.07 ? (a > 0.02 ? 1 : 0) : 2;
+      return f < 0.07 ? (a > 0.02 ? 1 : 0) : f < 0.22 ? 1 : 2;
     };
   }
 
