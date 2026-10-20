@@ -167,43 +167,6 @@
         </div>
         <figcaption>As $\lambda$ grows, the Wasserstein tilt moves each mode toward nearby high reward. The KL tilt reweights the base density by $e^{\lambda r}$, which here mostly changes the height of each mode. At $\lambda = 3$ the densities are those of Figure 2 of the WTF paper.</figcaption>
       </figure>
-      <div class="prose">
-        <p>This difference is especially visible when high reward lies where the base model puts little mass. Drag the reward location into the tail of the base distribution and compare the expected rewards. The KL tilt has less and less mass there to reweight and falls back toward the base, while the transport optimum keeps moving samples into the high-reward region.</p>
-      </div>
-      <div class="lab" id="tilt-lab">
-        <div class="lab-plot">
-          <canvas aria-label="Densities of the base distribution, the KL tilt and the Wasserstein tilt, with the reward"></canvas>
-        </div>
-        <div class="lab-legend">
-          <span><i style="background:var(--c-base)"></i><span>Base $\rho_1=\mathcal N(0,1)$</span></span>
-          <span><i style="background:var(--c-kl)"></i>KL tilt</span>
-          <span><i style="background:var(--c-wtf)"></i>Wasserstein tilt (WTF)</span>
-          <span><i class="dash"></i><span>Reward $r(x)$, rescaled</span></span>
-        </div>
-        <div class="lab-controls">
-          <div class="slider">
-            <label for="lab-k"><span>Reward location $K$</span> <output id="lab-k-out">4.75</output></label>
-            <input id="lab-k" type="range" min="0" max="6.5" step="0.05" value="4.75">
-            <small>base standard deviations from the mean</small>
-          </div>
-          <div class="slider">
-            <label for="lab-lam"><span>Reward scale $\lambda$</span> <output id="lab-lam-out">7.0</output></label>
-            <input id="lab-lam" type="range" min="0.5" max="12" step="0.1" value="7">
-            <small>inverse temperature</small>
-          </div>
-          <div class="lab-presets" aria-label="Presets">
-            <button type="button" data-preset="4.75,7">Paper setting</button>
-            <button type="button" data-preset="2,7">Reward nearby</button>
-            <button type="button" data-preset="6,9">Far &amp; strong</button>
-          </div>
-        </div>
-        <div class="lab-readout" aria-live="polite">
-          <div class="r-base"><p>Base $\mathbb E[r]$</p><strong id="er-base">–</strong><span>no fine-tuning</span></div>
-          <div class="r-kl"><p>KL tilt $\mathbb E[r]$</p><strong id="er-kl">–</strong><span id="gain-kl">&nbsp;</span></div>
-          <div class="r-wtf"><p>WTF $\mathbb E[r]$</p><strong id="er-wtf">–</strong><span id="gain-wtf">&nbsp;</span></div>
-        </div>
-      </div>
-      <p class="lab-cap">Exact population optima of each objective, computed without training. The same value of $\lambda$ sets a different strength under each regularizer, so the example shows how the optima differ in kind.</p>
     </section>
 
     <section id="flow-maps">
@@ -484,7 +447,6 @@
 
   <script src="assets/tilt-anim.js?v=6"></script>
   <script src="assets/convert-anim.js?v=5"></script>
-  <script src="assets/tilt-lab.js"></script>
   <script src="assets/computefig.js"></script>
   <script src="assets/genevalfig.js?v=6"></script>
   <script src="assets/valuefig.js?v=4"></script>
